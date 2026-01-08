@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Page Visibility API Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        h3 {
+            color: #764ba2;
+            margin: 15px 0 10px 0;
+            font-size: 1.3em;
+        }
+        
+        .status-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .status-item {
+            padding: 20px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .status-item.hidden {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .status-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .status-value {
+            font-size: 2em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .event-log {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            background: white;
+            border-left: 4px solid #667eea;
+        }
+        
+        .log-entry.warning {
+            border-left-color: #f5576c;
+            background: #fff5f5;
+        }
+        
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+        
+        .video-demo {
+            width: 100%;
+            max-width: 640px;
+            height: 360px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 8px;
+        }
+        
+        .animation-demo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 20px auto;
+            position: relative;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+        
+        .animation-demo.paused {
+            animation-play-state: paused;
+            opacity: 0.3;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .instructions h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        
+        .instructions ul {
+            margin: 10px 0 10px 20px;
+        }
+        
+        .instructions li {
+            margin: 5px 0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .counter {
+            font-size: 3em;
+            font-weight: bold;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 Advanced Page Visibility API Demo</h1>
+        
+        <!-- Status Display -->
+        <div class="card">
+            <h2>📊 Current Status</h2>
+            <div class="status-display">
+                <div class="status-item" id="hiddenStatus">
+                    <div class="status-label">document.hidden</div>
+                    <div class="status-value" id="hiddenValue">-</div>
+                </div>
+                <div class="status-item" id="visibilityStatus">
+                    <div class="status-label">document.visibilityState</div>
+                    <div class="status-value" id="visibilityValue">-</div>
+                </div>
+                <div class="status-item" id="focusStatus">
+                    <div class="status-label">document.hasFocus()</div>
+                    <div class="status-value" id="focusValue">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="card">
+            <div class="instructions">
+                <h3>🧪 How to Test This Extension</h3>
+                <ul>
+                    <li><strong>Switch tabs:</strong> Open another tab, then come back. Watch the status values and event log.</li>
+                    <li><strong>Minimize window:</strong> Minimize the browser and restore it.</li>
+                    <li><strong>With extension enabled:</strong> Values stay constant, animation continues, counter keeps running.</li>
+                    <li><strong>Without extension:</strong> Values change, animation pauses, counter may slow down.</li>
+                </ul>
+                <p><strong>💡 Expected Behavior with Extension:</strong></p>
+                <ul>
+                    <li>✅ document.hidden always returns <code>false</code></li>
+                    <li>✅ document.visibilityState always returns <code>"visible"</code></li>
+                    <li>✅ No visibility change events are logged</li>
+                    <li>✅ Animations keep running when tab is hidden</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="grid-2">
+            <!-- Animation Demo -->
+            <div class="card">
+                <h2>🎨 Animation Demo</h2>
+                <p>This animation pauses when the page is hidden (without extension):</p>
+                <div class="animation-demo" id="animationDemo"></div>
+                <p style="text-align: center; color: #6c757d;">
+                    <span id="animationStatus">Running</span>
+                </p>
+            </div>
+            
+            <!-- Counter Demo -->
+            <div class="card">
+                <h2>⏱️ Counter Demo</h2>
+                <p>Counter increments every second:</p>
+                <div class="counter" id="counter">0</div>
+                <div style="text-align: center;">
+                    <button onclick="resetCounter()">Reset Counter</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Log -->
+        <div class="card">
+            <h2>📋 Event Log</h2>
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button onclick="clearLog()">Clear Log</button>
+            </div>
+            <div class="event-log" id="eventLog">
+                <div class="log-entry">
+                    <span class="timestamp">[Starting...]</span> Waiting for events...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Developer Console Commands -->
+        <div class="card">
+            <h2>💻 Developer Console Commands</h2>
+            <p>Open the console (F12) and try these commands:</p>
+            <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto;"><code>// Check if page is hidden
+console.log('Hidden:', document.hidden);
+
+// Check visibility state
+console.log('State:', document.visibilityState);
+
+// Check if document has focus
+console.log('Has focus:', document.hasFocus());
+
+// Try to add a visibility change listener
+document.addEventListener('visibilitychange', () => {
+    console.log('Visibility changed!');
+});
+
+// Switch tabs and watch the console
+</code></pre>
+        </div>
+    </div>
+
+    <script>
+        const hiddenValue = document.getElementById('hiddenValue');
+        const visibilityValue = document.getElementById('visibilityValue');
+        const focusValue = document.getElementById('focusValue');
+        const hiddenStatus = document.getElementById('hiddenStatus');
+        const visibilityStatus = document.getElementById('visibilityStatus');
+        const eventLog = document.getElementById('eventLog');
+        const animationDemo = document.getElementById('animationDemo');
+        const animationStatus = document.getElementById('animationStatus');
+        const counterDisplay = document.getElementById('counter');
+        
+        let counter = 0;
+        let eventCount = 0;
+        
+        function updateStatus() {
+            const hidden = document.hidden;
+            const state = document.visibilityState;
+            const hasFocus = document.hasFocus();
+            
+            hiddenValue.textContent = String(hidden);
+            visibilityValue.textContent = state;
+            focusValue.textContent = String(hasFocus);
+            
+            // Update colors
+            if (hidden) {
+                hiddenStatus.classList.add('hidden');
+                visibilityStatus.classList.add('hidden');
+                animationDemo.classList.add('paused');
+                animationStatus.textContent = 'Paused (Page Hidden)';
+            } else {
+                hiddenStatus.classList.remove('hidden');
+                visibilityStatus.classList.remove('hidden');
+                animationDemo.classList.remove('paused');
+                animationStatus.textContent = 'Running';
+            }
+        }
+        
+        function addLogEntry(message, isWarning = false) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (isWarning ? ' warning' : '');
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            // Insert at the top
+            if (eventLog.firstChild) {
+                eventLog.insertBefore(entry, eventLog.firstChild);
+            } else {
+                eventLog.appendChild(entry);
+            }
+            
+            // Keep only last 100 entries
+            while (eventLog.children.length > 100) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+            
+            eventCount++;
+        }
+        
+        function clearLog() {
+            eventLog.innerHTML = '<div class="log-entry"><span class="timestamp">[Cleared]</span> Event log cleared</div>';
+            eventCount = 0;
+        }
+        
+        function resetCounter() {
+            counter = 0;
+            counterDisplay.textContent = counter;
+            addLogEntry('Counter reset to 0');
+        }
+        
+        // Initial status
+        updateStatus();
+        addLogEntry('Page loaded and ready');
+        
+        // Listen for visibility changes
+        document.addEventListener('visibilitychange', function() {
+            updateStatus();
+            const msg = `👁️ <strong>VISIBILITY CHANGED!</strong> hidden=${document.hidden}, state=${document.visibilityState}`;
+            addLogEntry(msg, true);
+        });
+        
+        // Listen for focus/blur events
+        window.addEventListener('focus', function() {
+            addLogEntry('🔍 Window gained focus');
+            updateStatus();
+        });
+        
+        window.addEventListener('blur', function() {
+            addLogEntry('😴 Window lost focus');
+            updateStatus();
+        });
+        
+        // Update status frequently
+        setInterval(updateStatus, 500);
+        
+        // Counter that increments every second
+        setInterval(function() {
+            counter++;
+            counterDisplay.textContent = counter;
+        }, 1000);
+        
+        // Log a heartbeat every 5 seconds
+        setInterval(function() {
+            addLogEntry(`💓 Heartbeat #${Math.floor(counter / 5)} - Page still active`);
+        }, 5000);
+        
+        // Log extension detection
+        setTimeout(function() {
+            const extensionDetected = document.hidden === false && !document.hasFocus();
+            if (extensionDetected) {
+                addLogEntry('✅ <strong>Extension may be active</strong> - document.hidden is false even without focus', false);
+            }
+        }, 1000);
+        
+        console.log('%c📄 Page Visibility API Demo', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log('%cTry these commands:', 'font-size: 14px; color: #764ba2;');
+        console.log('document.hidden // Should be false with extension');
+        console.log('document.visibilityState // Should be "visible" with extension');
+        console.log('document.hasFocus() // Can still be false');
+    </script>
+</body>
+</html>
