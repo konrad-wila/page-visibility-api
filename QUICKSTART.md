@@ -19,13 +19,13 @@
 Open browser console (F12) and try:
 
 ```javascript
-// Should always return false
+// Should always return false with extension enabled
 document.hidden
 
-// Should always return "visible"  
+// Should always return "visible" with extension enabled
 document.visibilityState
 
-// Should return true/false based on actual focus
+// Shows actual focus state (not affected by extension)
 document.hasFocus()
 ```
 

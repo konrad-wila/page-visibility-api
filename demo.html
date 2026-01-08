@@ -404,11 +404,13 @@ document.addEventListener('visibilitychange', () => {
             addLogEntry(`💓 Heartbeat #${Math.floor(counter / 5)} - Page still active`);
         }, 5000);
         
-        // Log extension detection
+        // Log extension detection attempt
         setTimeout(function() {
-            const extensionDetected = document.hidden === false && !document.hasFocus();
-            if (extensionDetected) {
-                addLogEntry('✅ <strong>Extension may be active</strong> - document.hidden is false even without focus', false);
+            // Note: This is a heuristic - not 100% accurate
+            // If document.hidden is false and page has been loaded for a while,
+            // the extension might be active (or page is legitimately visible)
+            if (document.hidden === false) {
+                addLogEntry('ℹ️ document.hidden is false - Extension may be active or page is visible', false);
             }
         }, 1000);
         

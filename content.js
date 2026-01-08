@@ -10,9 +10,7 @@
     (function() {
       'use strict';
       
-      // Store original properties and methods
-      const originalDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, 'hidden');
-      const originalVisibilityStateDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState');
+      // Store original methods
       const originalAddEventListener = Document.prototype.addEventListener;
       const originalRemoveEventListener = Document.prototype.removeEventListener;
       
