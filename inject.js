@@ -170,26 +170,18 @@
   });
   
   // Start observing when DOM is ready
+  // Script runs at document_start, so documentElement should exist
   if (document.documentElement) {
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['onblur', 'onfocus', 'onvisibilitychange'],
       subtree: true
     });
-  } else {
-    // If documentElement doesn't exist yet, wait for it
-    document.addEventListener('DOMContentLoaded', function() {
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['onblur', 'onfocus', 'onvisibilitychange'],
-        subtree: true
-      });
-    });
   }
   
   // Zone.js detection and handling (for Angular applications)
   // Zone.js patches native event methods, so we need to override those too
-  if (window.Zone && window.Zone.__symbol__) {
+  if (window.Zone && window.Zone.__symbol__ && typeof window.Zone.__symbol__ === 'function') {
     const zoneSymbol = window.Zone.__symbol__;
     
     // Try to override Zone's patched addEventListener
