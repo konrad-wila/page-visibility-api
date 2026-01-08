@@ -276,6 +276,10 @@
         window.logToUI('✅ Page loaded. Pre-existing listeners from <head> are active.', 'success');
 
         // Manual event dispatch functions for testing
+        // Note: Event listeners execute synchronously during dispatchEvent(),
+        // so if an error was going to appear, it would have already fired before
+        // the setTimeout callback runs. The timeout just allows the UI to update
+        // and show the success message after the event has been processed.
         window.dispatchBlurEvent = function() {
             console.log('%c[TEST] Manually dispatching blur event...', 'color: #667eea; font-weight: bold;');
             window.logToUI('🎯 Manually dispatching blur event...', 'info');
@@ -283,7 +287,7 @@
             // If dispatchEvent override works, we won't see error messages
             setTimeout(() => {
                 window.logToUI('✅ Blur event dispatched. No error = SUCCESS!', 'success');
-            }, 100);
+            }, 200);
         };
 
         window.dispatchFocusEvent = function() {
@@ -292,7 +296,7 @@
             window.dispatchEvent(new Event('focus'));
             setTimeout(() => {
                 window.logToUI('✅ Focus event dispatched. No error = SUCCESS!', 'success');
-            }, 100);
+            }, 200);
         };
 
         window.dispatchVisibilityChangeEvent = function() {
@@ -301,7 +305,7 @@
             document.dispatchEvent(new Event('visibilitychange'));
             setTimeout(() => {
                 window.logToUI('✅ Visibilitychange event dispatched. No error = SUCCESS!', 'success');
-            }, 100);
+            }, 200);
         };
 
         window.dispatchFocusinEvent = function() {
@@ -310,7 +314,7 @@
             window.dispatchEvent(new Event('focusin'));
             setTimeout(() => {
                 window.logToUI('✅ Focusin event dispatched. No error = SUCCESS!', 'success');
-            }, 100);
+            }, 200);
         };
 
         window.dispatchFocusoutEvent = function() {
@@ -319,7 +323,7 @@
             window.dispatchEvent(new Event('focusout'));
             setTimeout(() => {
                 window.logToUI('✅ Focusout event dispatched. No error = SUCCESS!', 'success');
-            }, 100);
+            }, 200);
         };
 
         // Also try to register NEW listeners (these should be blocked at registration)
