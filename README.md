@@ -18,8 +18,9 @@ This extension completely disables the Page Visibility API and window focus dete
 
 1. **Overriding `document.hidden`**: Always returns `false`, making the page appear never hidden
 2. **Overriding `document.visibilityState`**: Always returns `"visible"`, indicating the page is always visible
-3. **Blocking `visibilitychange` events**: Prevents event listeners from detecting visibility changes
-4. **Blocking `window.blur` and `window.focus` events**: Prevents event listeners from detecting when the window loses or gains focus
+3. **Overriding `document.hasFocus()`**: Always returns `true`, making the document appear always focused
+4. **Blocking `visibilitychange` events**: Prevents event listeners from detecting visibility changes
+5. **Blocking `window.blur` and `window.focus` events**: Prevents event listeners from detecting when the window loses or gains focus
 
 ## Installation
 

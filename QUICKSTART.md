@@ -12,6 +12,7 @@
 |---------------------|-----------------|----------------|
 | `document.hidden` | `true` when tab is hidden | Always `false` |
 | `document.visibilityState` | `"visible"` or `"hidden"` | Always `"visible"` |
+| `document.hasFocus()` | `false` when window loses focus | Always `true` |
 | `visibilitychange` event | Fires on tab switch | Never fires |
 | `window.blur` event | Fires when window loses focus | Never fires |
 | `window.focus` event | Fires when window gains focus | Never fires |
@@ -27,7 +28,7 @@ document.hidden
 // Should always return "visible" with extension enabled
 document.visibilityState
 
-// Shows actual focus state (not affected by extension)
+// Should always return true with extension enabled
 document.hasFocus()
 ```
 

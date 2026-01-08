@@ -234,6 +234,7 @@
                 <ul>
                     <li>✅ document.hidden always returns <code>false</code></li>
                     <li>✅ document.visibilityState always returns <code>"visible"</code></li>
+                    <li>✅ document.hasFocus() always returns <code>true</code></li>
                     <li>✅ No visibility change events are logged</li>
                     <li>✅ No window blur/focus events are logged</li>
                     <li>✅ Animations keep running when tab is hidden</li>
@@ -430,7 +431,7 @@ document.addEventListener('visibilitychange', () => {
         console.log('%cTry these commands:', 'font-size: 14px; color: #764ba2;');
         console.log('document.hidden // Should be false with extension');
         console.log('document.visibilityState // Should be "visible" with extension');
-        console.log('document.hasFocus() // Can still be false');
+        console.log('document.hasFocus() // Should be true with extension');
     </script>
 </body>
 </html>
