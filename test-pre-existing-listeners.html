@@ -238,11 +238,33 @@
             }
         };
 
-        // Check if extension is active
+        // Check if extension is active by attempting to add a test listener
+        // and checking if the console.log override is present
         function checkExtensionStatus() {
-            const isExtensionActive = document.hidden === false;
+            // Store original console.log
+            const messages = [];
+            const originalLog = console.log;
+            
+            // Temporarily intercept console.log
+            console.log = function(...args) {
+                messages.push(args.join(' '));
+                originalLog.apply(console, args);
+            };
+            
+            // Try to add a listener for a blocked event type
+            const testListener = function() {};
+            window.addEventListener('blur', testListener);
+            
+            // Restore original console.log
+            console.log = originalLog;
+            
+            // Check if our extension logged the blocking message
+            const isExtensionActive = messages.some(msg => 
+                msg.includes('[Page Visibility API Disabler]') && msg.includes('Blocked blur event listener')
+            );
+            
             if (isExtensionActive) {
-                extensionStatusEl.textContent = '✅ Active (document.hidden = false)';
+                extensionStatusEl.textContent = '✅ Active (detected blocking message)';
                 extensionStatusEl.style.color = '#4caf50';
             } else {
                 extensionStatusEl.textContent = '❌ Not Detected';
