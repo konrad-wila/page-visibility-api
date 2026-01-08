@@ -143,7 +143,9 @@
     </div>
 
     <!-- Load jQuery from CDN -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" 
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" 
+            crossorigin="anonymous"></script>
     
     <script>
         const log = document.getElementById('log');
@@ -192,17 +194,18 @@
         // Test 1: jQuery blur/focus events (from Stack Overflow pattern)
         console.log('%c[Test] Registering jQuery blur/focus event listeners...', 'color: #667eea; font-weight: bold;');
         $(window).on('blur focus', function(e) {
-            const message = 'User ' + (e.type === 'blur' ? 'left' : 'is viewing') + ' this browser tab.';
+            const eventType = e.type === 'blur' ? 'left' : 'is viewing';
+            const message = `User ${eventType} this browser tab.`;
             console.log('%c[jQuery Event] ' + message, 'color: #f44336; font-weight: bold;');
-            addLogEntry('🚨 jQuery ' + e.type + ' event fired: ' + message, 'error');
+            addLogEntry(`🚨 jQuery ${e.type} event fired: ${message}`, 'error');
         });
 
         // Test 2: Standard blur/focus events using jQuery's addEventListener wrapper
         console.log('%c[Test] Registering jQuery visibilitychange event listener...', 'color: #667eea; font-weight: bold;');
         $(document).on('visibilitychange', function() {
-            const message = 'Visibility changed! hidden=' + document.hidden + ', state=' + document.visibilityState;
+            const message = `Visibility changed! hidden=${document.hidden}, state=${document.visibilityState}`;
             console.log('%c[jQuery Event] ' + message, 'color: #f44336; font-weight: bold;');
-            addLogEntry('🚨 jQuery visibilitychange event fired: ' + message, 'error');
+            addLogEntry(`🚨 jQuery visibilitychange event fired: ${message}`, 'error');
         });
 
         // Test 3: Native addEventListener (should also be blocked)
