@@ -10,6 +10,10 @@
   script.onload = function() {
     this.remove();
   };
+  script.onerror = function() {
+    console.error('[Page Visibility API Disabler] Failed to load inject.js');
+    this.remove();
+  };
   
   // Insert script at the very beginning of the document
   (document.head || document.documentElement).appendChild(script);

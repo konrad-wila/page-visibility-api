@@ -65,5 +65,5 @@
     return originalWindowRemoveEventListener.call(this, type, listener, options);
   };
   
-  console.log('[Page Visibility API Disabler] API has been disabled. document.hidden will always return false, visibilityState will always return "visible", hasFocus() will always return true, and window blur/focus events are blocked.');
+  console.log('[Page Visibility API Disabler] Extension active - all visibility/focus detection disabled.');
 })();
