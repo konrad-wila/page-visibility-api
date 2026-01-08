@@ -12,7 +12,10 @@
 |---------------------|-----------------|----------------|
 | `document.hidden` | `true` when tab is hidden | Always `false` |
 | `document.visibilityState` | `"visible"` or `"hidden"` | Always `"visible"` |
+| `document.hasFocus()` | `false` when window loses focus | Always `true` |
 | `visibilitychange` event | Fires on tab switch | Never fires |
+| `window.blur` event | Fires when window loses focus | Never fires |
+| `window.focus` event | Fires when window gains focus | Never fires |
 
 ## ✅ Testing Commands
 
@@ -25,7 +28,7 @@ document.hidden
 // Should always return "visible" with extension enabled
 document.visibilityState
 
-// Shows actual focus state (not affected by extension)
+// Should always return true with extension enabled
 document.hasFocus()
 ```
 
@@ -60,7 +63,8 @@ document.hasFocus()
 ```
 page-visibility-api/
 ├── manifest.json      # Extension config (required)
-├── content.js         # Core script that overrides API (required)
+├── content.js         # Content script that injects override (required)
+├── inject.js          # Injected script with API overrides (required)
 ├── icons/            # Extension icons (required)
 │   ├── icon16.png
 │   ├── icon48.png

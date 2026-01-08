@@ -14,11 +14,13 @@ Some websites use this API to pause videos, stop animations, or track user engag
 
 ## What This Extension Does
 
-This extension completely disables the Page Visibility API by:
+This extension completely disables the Page Visibility API and window focus detection by:
 
 1. **Overriding `document.hidden`**: Always returns `false`, making the page appear never hidden
 2. **Overriding `document.visibilityState`**: Always returns `"visible"`, indicating the page is always visible
-3. **Blocking `visibilitychange` events**: Prevents event listeners from detecting visibility changes
+3. **Overriding `document.hasFocus()`**: Always returns `true`, making the document appear always focused
+4. **Blocking `visibilitychange` events**: Prevents event listeners from detecting visibility changes
+5. **Blocking `window.blur` and `window.focus` events**: Prevents event listeners from detecting when the window loses or gains focus
 
 ## Installation
 
@@ -57,8 +59,10 @@ The extension uses a content script that runs at `document_start` to inject code
 The script:
 - Runs on all URLs (`<all_urls>`)
 - Executes in all frames (`all_frames: true`)
+- Injects a separate JS file (`inject.js`) to bypass Content Security Policy (CSP) restrictions
 - Uses `Object.defineProperty` to override API properties
 - Intercepts `addEventListener` to block `visibilitychange` event registration
+- Intercepts `Window.prototype.addEventListener` to block `blur` and `focus` event registration
 
 ## Privacy & Permissions
 
@@ -77,7 +81,8 @@ This extension requires no special permissions. It only modifies the Page Visibi
 ## Files
 
 - `manifest.json`: Extension configuration
-- `content.js`: Content script that overrides the API
+- `content.js`: Content script that injects the override code
+- `inject.js`: Injected script that overrides the APIs (runs in page context)
 - `icons/`: Extension icons in various sizes
 
 ## License

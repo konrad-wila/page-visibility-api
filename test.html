@@ -104,14 +104,16 @@
         <div class="instructions">
             <h3>🧪 How to Test:</h3>
             <ul>
-                <li><strong>Without the extension:</strong> Switch to another tab or minimize the window. The values will change to show the page is hidden.</li>
-                <li><strong>With the extension:</strong> Switch to another tab or minimize the window. The values will remain unchanged, always showing the page as visible.</li>
+                <li><strong>Without the extension:</strong> Switch to another tab or minimize the window. The values will change to show the page is hidden, and blur/focus events will be logged.</li>
+                <li><strong>With the extension:</strong> Switch to another tab or minimize the window. The values will remain unchanged, always showing the page as visible, and no blur/focus events will be logged.</li>
             </ul>
             <p><strong>Expected with extension enabled:</strong></p>
             <ul>
                 <li>document.hidden should always be <code>false</code></li>
                 <li>document.visibilityState should always be <code>"visible"</code></li>
+                <li>document.hasFocus() should always be <code>true</code></li>
                 <li>No "visibility changed" events should be logged</li>
+                <li>No window "blur" or "focus" events should be logged</li>
             </ul>
         </div>
 
@@ -162,6 +164,15 @@
         document.addEventListener('visibilitychange', function() {
             updateStatus();
             addLogEntry(`👁️ Visibility changed! hidden=${document.hidden}, state=${document.visibilityState}`);
+        });
+
+        // Listen for window blur/focus events
+        window.addEventListener('blur', function() {
+            addLogEntry('😴 Window lost focus (blur event)');
+        });
+
+        window.addEventListener('focus', function() {
+            addLogEntry('🔍 Window gained focus (focus event)');
         });
 
         // Update status every second to show real-time values
