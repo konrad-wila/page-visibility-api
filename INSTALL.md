@@ -121,7 +121,7 @@ Switch tabs - no message should appear in the console.
 ### Console Shows Errors
 
 If you see errors in the console:
-- Make sure all files are present (manifest.json, content.js, icons/)
+- Make sure all files are present (manifest.json, content.js, inject.js, icons/)
 - Try removing and reinstalling the extension
 - Check file permissions
 

@@ -59,6 +59,7 @@ The extension uses a content script that runs at `document_start` to inject code
 The script:
 - Runs on all URLs (`<all_urls>`)
 - Executes in all frames (`all_frames: true`)
+- Injects a separate JS file (`inject.js`) to bypass Content Security Policy (CSP) restrictions
 - Uses `Object.defineProperty` to override API properties
 - Intercepts `addEventListener` to block `visibilitychange` event registration
 - Intercepts `Window.prototype.addEventListener` to block `blur` and `focus` event registration
@@ -80,7 +81,8 @@ This extension requires no special permissions. It only modifies the Page Visibi
 ## Files
 
 - `manifest.json`: Extension configuration
-- `content.js`: Content script that overrides the API
+- `content.js`: Content script that injects the override code
+- `inject.js`: Injected script that overrides the APIs (runs in page context)
 - `icons/`: Extension icons in various sizes
 
 ## License

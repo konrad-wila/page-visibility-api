@@ -63,7 +63,8 @@ document.hasFocus()
 ```
 page-visibility-api/
 ├── manifest.json      # Extension config (required)
-├── content.js         # Core script that overrides API (required)
+├── content.js         # Content script that injects override (required)
+├── inject.js          # Injected script with API overrides (required)
 ├── icons/            # Extension icons (required)
 │   ├── icon16.png
 │   ├── icon48.png

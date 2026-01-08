@@ -1,81 +1,16 @@
 // Content script to disable Page Visibility API
-// This script runs before the page loads and overrides the API
+// This script runs before the page loads and injects the override script
 
 (function() {
   'use strict';
 
-  // Inject the script into the page context to override API before any page scripts run
+  // Inject the script file into the page context to override API before any page scripts run
   const script = document.createElement('script');
-  script.textContent = `
-    (function() {
-      'use strict';
-      
-      // Store original methods
-      const originalAddEventListener = Document.prototype.addEventListener;
-      const originalRemoveEventListener = Document.prototype.removeEventListener;
-      const originalWindowAddEventListener = Window.prototype.addEventListener;
-      const originalWindowRemoveEventListener = Window.prototype.removeEventListener;
-      
-      // Override document.hidden to always return false
-      Object.defineProperty(Document.prototype, 'hidden', {
-        get: function() {
-          return false;
-        },
-        configurable: true
-      });
-      
-      // Override document.visibilityState to always return "visible"
-      Object.defineProperty(Document.prototype, 'visibilityState', {
-        get: function() {
-          return 'visible';
-        },
-        configurable: true
-      });
-      
-      // Override document.hasFocus to always return true
-      Document.prototype.hasFocus = function() {
-        return true;
-      };
-      
-      // Block visibilitychange events
-      Document.prototype.addEventListener = function(type, listener, options) {
-        if (type === 'visibilitychange') {
-          // Silently ignore visibilitychange event listeners
-          return;
-        }
-        return originalAddEventListener.call(this, type, listener, options);
-      };
-      
-      Document.prototype.removeEventListener = function(type, listener, options) {
-        if (type === 'visibilitychange') {
-          // Silently ignore removal of visibilitychange event listeners
-          return;
-        }
-        return originalRemoveEventListener.call(this, type, listener, options);
-      };
-      
-      // Block window blur and focus events
-      Window.prototype.addEventListener = function(type, listener, options) {
-        if (type === 'blur' || type === 'focus') {
-          // Silently ignore blur and focus event listeners
-          return;
-        }
-        return originalWindowAddEventListener.call(this, type, listener, options);
-      };
-      
-      Window.prototype.removeEventListener = function(type, listener, options) {
-        if (type === 'blur' || type === 'focus') {
-          // Silently ignore removal of blur and focus event listeners
-          return;
-        }
-        return originalWindowRemoveEventListener.call(this, type, listener, options);
-      };
-      
-      console.log('[Page Visibility API Disabler] API has been disabled. document.hidden will always return false, visibilityState will always return "visible", hasFocus() will always return true, and window blur/focus events are blocked.');
-    })();
-  `;
+  script.src = chrome.runtime.getURL('inject.js');
+  script.onload = function() {
+    this.remove();
+  };
   
   // Insert script at the very beginning of the document
   (document.head || document.documentElement).appendChild(script);
-  script.remove();
 })();
