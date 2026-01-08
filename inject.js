@@ -89,7 +89,6 @@
     if (typeof jQuery !== 'undefined' && jQuery.event && jQuery.event.special) {
       // Override jQuery's special focus event handler
       if (jQuery.event.special.focus) {
-        const originalFocusSetup = jQuery.event.special.focus.setup;
         jQuery.event.special.focus = {
           setup: function() {
             console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.focus setup');
@@ -104,7 +103,6 @@
       
       // Override jQuery's special blur event handler
       if (jQuery.event.special.blur) {
-        const originalBlurSetup = jQuery.event.special.blur.setup;
         jQuery.event.special.blur = {
           setup: function() {
             console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.blur setup');
