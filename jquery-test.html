@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jQuery Event Listener Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        #log {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-entry.success {
+            color: #4ec9b0;
+        }
+        .log-entry.error {
+            color: #f48771;
+        }
+        .log-entry.info {
+            color: #9cdcfe;
+        }
+        .timestamp {
+            color: #858585;
+            font-size: 12px;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .expected {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .expected h3 {
+            margin-top: 0;
+            color: #155724;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 jQuery Event Listener Test</h1>
+        
+        <div class="test-section">
+            <h3>Test Status</h3>
+            <p>This page tests whether the extension blocks jQuery-based event listeners.</p>
+            <p><strong>jQuery Version:</strong> <span id="jqueryVersion">Loading...</span></p>
+            <p><strong>Extension Status:</strong> <span id="extensionStatus">Checking...</span></p>
+        </div>
+
+        <div class="instructions">
+            <h3>📝 Test Instructions</h3>
+            <ol>
+                <li>Load this page with the extension enabled</li>
+                <li>Check the console for debug messages showing blocked events</li>
+                <li>Switch to another tab or window</li>
+                <li>Switch back to this tab</li>
+                <li>Check the event log below - it should remain empty if the extension is working</li>
+            </ol>
+        </div>
+
+        <div class="expected">
+            <h3>✅ Expected Behavior (With Extension)</h3>
+            <ul>
+                <li>Console shows messages like: <code>[Page Visibility API Disabler] Blocked blur event listener</code></li>
+                <li>When you switch tabs, <strong>NO</strong> jQuery blur/focus events are logged below</li>
+                <li>When you switch tabs, <strong>NO</strong> visibilitychange events are logged below</li>
+                <li>document.hidden always returns <code>false</code></li>
+            </ul>
+            <h3>❌ Expected Behavior (Without Extension)</h3>
+            <ul>
+                <li>When you switch tabs, jQuery blur/focus events <strong>ARE</strong> logged below</li>
+                <li>When you switch tabs, visibilitychange events <strong>ARE</strong> logged below</li>
+                <li>document.hidden changes between <code>true</code> and <code>false</code></li>
+            </ul>
+        </div>
+
+        <h3>📋 jQuery Event Log:</h3>
+        <div id="log">
+            <div class="log-entry info">
+                <span class="timestamp">[Starting...]</span> Waiting for jQuery events...
+            </div>
+        </div>
+    </div>
+
+    <!-- Load jQuery from CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" 
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" 
+            crossorigin="anonymous"></script>
+    
+    <script>
+        const log = document.getElementById('log');
+        const jqueryVersionEl = document.getElementById('jqueryVersion');
+        const extensionStatusEl = document.getElementById('extensionStatus');
+        
+        // Show jQuery version
+        if (typeof jQuery !== 'undefined') {
+            jqueryVersionEl.textContent = jQuery.fn.jquery;
+            jqueryVersionEl.style.color = '#4caf50';
+        } else {
+            jqueryVersionEl.textContent = 'Not loaded!';
+            jqueryVersionEl.style.color = '#f44336';
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 100 entries
+            while (log.children.length > 100) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Check if extension is active by checking if document.hidden is always false
+        function checkExtensionStatus() {
+            // The extension overrides document.hidden to always return false
+            const isExtensionLikelyActive = document.hidden === false;
+            if (isExtensionLikelyActive) {
+                extensionStatusEl.textContent = 'Likely Active (document.hidden = false)';
+                extensionStatusEl.style.color = '#4caf50';
+            } else {
+                extensionStatusEl.textContent = 'Not Detected or Page is Visible';
+                extensionStatusEl.style.color = '#ff9800';
+            }
+        }
+
+        checkExtensionStatus();
+        addLogEntry('Page loaded, jQuery ready', 'success');
+
+        // Test 1: jQuery blur/focus events (from Stack Overflow pattern)
+        console.log('%c[Test] Registering jQuery blur/focus event listeners...', 'color: #667eea; font-weight: bold;');
+        $(window).on('blur focus', function(e) {
+            const eventType = e.type === 'blur' ? 'left' : 'is viewing';
+            const message = `User ${eventType} this browser tab.`;
+            console.log('%c[jQuery Event] ' + message, 'color: #f44336; font-weight: bold;');
+            addLogEntry(`🚨 jQuery ${e.type} event fired: ${message}`, 'error');
+        });
+
+        // Test 2: Standard blur/focus events using jQuery's addEventListener wrapper
+        console.log('%c[Test] Registering jQuery visibilitychange event listener...', 'color: #667eea; font-weight: bold;');
+        $(document).on('visibilitychange', function() {
+            const message = `Visibility changed! hidden=${document.hidden}, state=${document.visibilityState}`;
+            console.log('%c[jQuery Event] ' + message, 'color: #f44336; font-weight: bold;');
+            addLogEntry(`🚨 jQuery visibilitychange event fired: ${message}`, 'error');
+        });
+
+        // Test 3: Native addEventListener (should also be blocked)
+        console.log('%c[Test] Registering native blur/focus event listeners...', 'color: #667eea; font-weight: bold;');
+        window.addEventListener('blur', function() {
+            const message = 'Native blur event fired!';
+            console.log('%c[Native Event] ' + message, 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ' + message, 'error');
+        });
+
+        window.addEventListener('focus', function() {
+            const message = 'Native focus event fired!';
+            console.log('%c[Native Event] ' + message, 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ' + message, 'error');
+        });
+
+        // Test 4: Native visibilitychange
+        console.log('%c[Test] Registering native visibilitychange event listener...', 'color: #667eea; font-weight: bold;');
+        document.addEventListener('visibilitychange', function() {
+            const message = 'Native visibilitychange event fired! hidden=' + document.hidden;
+            console.log('%c[Native Event] ' + message, 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ' + message, 'error');
+        });
+
+        // Update status every 2 seconds
+        setInterval(function() {
+            checkExtensionStatus();
+        }, 2000);
+
+        // Heartbeat to show page is still active
+        setInterval(function() {
+            addLogEntry('💓 Heartbeat - Page active, no events should fire when switching tabs', 'info');
+        }, 10000);
+
+        console.log('%c✅ All event listeners registered. Now switch tabs to test!', 'color: #4caf50; font-weight: bold; font-size: 14px;');
+        addLogEntry('✅ All event listeners registered. Switch tabs to test!', 'success');
+    </script>
+</body>
+</html>

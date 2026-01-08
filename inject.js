@@ -4,11 +4,11 @@
 (function() {
   'use strict';
   
-  // Store original methods
-  const originalAddEventListener = Document.prototype.addEventListener;
-  const originalRemoveEventListener = Document.prototype.removeEventListener;
-  const originalWindowAddEventListener = Window.prototype.addEventListener;
-  const originalWindowRemoveEventListener = Window.prototype.removeEventListener;
+  // Store original methods from EventTarget.prototype to catch all event registrations
+  // This is more effective than overriding Window/Document separately as EventTarget
+  // is the base prototype for all event-capable objects (Window, Document, Element, etc.)
+  const originalAddEventListener = EventTarget.prototype.addEventListener;
+  const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
   
   // Override document.hidden to always return false
   Object.defineProperty(Document.prototype, 'hidden', {
@@ -31,38 +31,24 @@
     return true;
   };
   
-  // Block visibilitychange events
-  Document.prototype.addEventListener = function(type, listener, options) {
-    if (type === 'visibilitychange') {
-      // Silently ignore visibilitychange event listeners
+  // Override EventTarget.prototype to block visibilitychange, blur, and focus events
+  // This catches ALL event registrations, including those from jQuery and other libraries
+  // that cache the native addEventListener method
+  EventTarget.prototype.addEventListener = function(type, listener, options) {
+    if (type === 'visibilitychange' || type === 'blur' || type === 'focus') {
+      // Log and silently ignore these event listeners
+      console.log(`[Page Visibility API Disabler] Blocked ${type} event listener`);
       return;
     }
     return originalAddEventListener.call(this, type, listener, options);
   };
   
-  Document.prototype.removeEventListener = function(type, listener, options) {
-    if (type === 'visibilitychange') {
-      // Silently ignore removal of visibilitychange event listeners
+  EventTarget.prototype.removeEventListener = function(type, listener, options) {
+    if (type === 'visibilitychange' || type === 'blur' || type === 'focus') {
+      // Silently ignore removal of these event listeners
       return;
     }
     return originalRemoveEventListener.call(this, type, listener, options);
-  };
-  
-  // Block window blur and focus events
-  Window.prototype.addEventListener = function(type, listener, options) {
-    if (type === 'blur' || type === 'focus') {
-      // Silently ignore blur and focus event listeners
-      return;
-    }
-    return originalWindowAddEventListener.call(this, type, listener, options);
-  };
-  
-  Window.prototype.removeEventListener = function(type, listener, options) {
-    if (type === 'blur' || type === 'focus') {
-      // Silently ignore removal of blur and focus event listeners
-      return;
-    }
-    return originalWindowRemoveEventListener.call(this, type, listener, options);
   };
   
   console.log('[Page Visibility API Disabler] Extension active - all visibility/focus detection disabled.');
