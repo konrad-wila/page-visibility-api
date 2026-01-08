@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-existing Event Listeners Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        #log {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-entry.success {
+            color: #4ec9b0;
+        }
+        .log-entry.error {
+            color: #f48771;
+        }
+        .log-entry.info {
+            color: #9cdcfe;
+        }
+        .timestamp {
+            color: #858585;
+            font-size: 12px;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .expected {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .expected h3 {
+            margin-top: 0;
+            color: #155724;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .manual-trigger {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 5px;
+        }
+        .manual-trigger button {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .manual-trigger button:hover {
+            background-color: #1976d2;
+        }
+    </style>
+    <!-- 
+        IMPORTANT: Event listeners are registered HERE in the <head> section
+        BEFORE the extension's inject.js can execute.
+        This simulates the real-world scenario on CodePen where user code
+        runs in an iframe and registers listeners before the extension loads.
+    -->
+    <script>
+        console.log('%c[PRE-EXTENSION] Registering event listeners BEFORE extension loads...', 'color: #ff6b6b; font-weight: bold; font-size: 14px;');
+        
+        // These listeners are registered BEFORE the extension loads
+        window.addEventListener('blur', function() {
+            console.error('❌ PRE-EXISTING blur listener fired! This should be BLOCKED by dispatchEvent override.');
+            addLogEntry('❌ FAILURE: Pre-existing blur listener fired!', 'error');
+        });
+        
+        window.addEventListener('focus', function() {
+            console.error('❌ PRE-EXISTING focus listener fired! This should be BLOCKED by dispatchEvent override.');
+            addLogEntry('❌ FAILURE: Pre-existing focus listener fired!', 'error');
+        });
+        
+        document.addEventListener('visibilitychange', function() {
+            console.error('❌ PRE-EXISTING visibilitychange listener fired! This should be BLOCKED by dispatchEvent override.');
+            addLogEntry('❌ FAILURE: Pre-existing visibilitychange listener fired!', 'error');
+        });
+        
+        window.addEventListener('focusin', function() {
+            console.error('❌ PRE-EXISTING focusin listener fired! This should be BLOCKED by dispatchEvent override.');
+            addLogEntry('❌ FAILURE: Pre-existing focusin listener fired!', 'error');
+        });
+        
+        window.addEventListener('focusout', function() {
+            console.error('❌ PRE-EXISTING focusout listener fired! This should be BLOCKED by dispatchEvent override.');
+            addLogEntry('❌ FAILURE: Pre-existing focusout listener fired!', 'error');
+        });
+        
+        console.log('%c[PRE-EXTENSION] ✅ All pre-existing listeners registered!', 'color: #ff6b6b; font-weight: bold;');
+        
+        // Helper function that will be used later
+        function addLogEntry(message, type = 'info') {
+            // This function will be fully defined in the body script
+            if (window.logToUI) {
+                window.logToUI(message, type);
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Pre-existing Event Listeners Test</h1>
+        
+        <div class="test-section">
+            <h3>Test Scenario</h3>
+            <p>This page simulates the <strong>CodePen scenario</strong> where event listeners are registered <strong>BEFORE</strong> the extension loads.</p>
+            <p><strong>Critical:</strong> Event listeners in the &lt;head&gt; section were registered BEFORE the extension's inject.js could execute.</p>
+            <p><strong>Extension Status:</strong> <span id="extensionStatus">Checking...</span></p>
+        </div>
+
+        <div class="instructions">
+            <h3>📝 How to Test</h3>
+            <ol>
+                <li><strong>Open Chrome DevTools Console</strong> to see detailed messages</li>
+                <li><strong>Switch to another tab or window</strong></li>
+                <li><strong>Switch back to this tab</strong></li>
+                <li>Check the console and the event log below</li>
+            </ol>
+            <p><strong>OR use the manual trigger buttons:</strong></p>
+        </div>
+
+        <div class="manual-trigger">
+            <h3>🎯 Manual Event Triggers (for testing)</h3>
+            <p>Click these buttons to manually dispatch events and verify they are blocked:</p>
+            <button onclick="dispatchBlurEvent()">Dispatch Blur Event</button>
+            <button onclick="dispatchFocusEvent()">Dispatch Focus Event</button>
+            <button onclick="dispatchVisibilityChangeEvent()">Dispatch VisibilityChange Event</button>
+            <button onclick="dispatchFocusinEvent()">Dispatch Focusin Event</button>
+            <button onclick="dispatchFocusoutEvent()">Dispatch Focusout Event</button>
+        </div>
+
+        <div class="expected">
+            <h3>✅ Expected Behavior (With Extension + dispatchEvent fix)</h3>
+            <ul>
+                <li>Console shows: <code>[Page Visibility API Disabler] Blocked blur event dispatch</code></li>
+                <li>Console shows: <code>[Page Visibility API Disabler] Blocked focus event dispatch</code></li>
+                <li>Console shows: <code>[Page Visibility API Disabler] Blocked visibilitychange event dispatch</code></li>
+                <li>When you switch tabs or click buttons, <strong>NO ERROR MESSAGES</strong> appear in console</li>
+                <li>When you switch tabs or click buttons, <strong>NO ERROR MESSAGES</strong> appear in the log below</li>
+                <li>The log shows only SUCCESS messages about blocked dispatch</li>
+            </ul>
+            <h3>❌ What Would Happen Without dispatchEvent Fix</h3>
+            <ul>
+                <li>Pre-existing listeners would still fire</li>
+                <li>Console would show: <code>❌ PRE-EXISTING blur listener fired!</code></li>
+                <li>Log below would show FAILURE messages</li>
+            </ul>
+        </div>
+
+        <h3>📋 Event Log:</h3>
+        <div id="log">
+            <div class="log-entry info">
+                <span class="timestamp">[Starting...]</span> Pre-existing listeners registered. Switch tabs or click buttons to test!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const extensionStatusEl = document.getElementById('extensionStatus');
+        
+        // Define the logging function that was referenced in the head
+        window.logToUI = function(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 100 entries
+            while (log.children.length > 100) {
+                log.removeChild(log.lastChild);
+            }
+        };
+
+        // Check if extension is active
+        function checkExtensionStatus() {
+            const isExtensionActive = document.hidden === false;
+            if (isExtensionActive) {
+                extensionStatusEl.textContent = '✅ Active (document.hidden = false)';
+                extensionStatusEl.style.color = '#4caf50';
+            } else {
+                extensionStatusEl.textContent = '❌ Not Detected';
+                extensionStatusEl.style.color = '#f44336';
+            }
+        }
+
+        checkExtensionStatus();
+        window.logToUI('✅ Page loaded. Pre-existing listeners from <head> are active.', 'success');
+
+        // Manual event dispatch functions for testing
+        window.dispatchBlurEvent = function() {
+            console.log('%c[TEST] Manually dispatching blur event...', 'color: #667eea; font-weight: bold;');
+            window.logToUI('🎯 Manually dispatching blur event...', 'info');
+            window.dispatchEvent(new Event('blur'));
+            // If dispatchEvent override works, we won't see error messages
+            setTimeout(() => {
+                window.logToUI('✅ Blur event dispatched. No error = SUCCESS!', 'success');
+            }, 100);
+        };
+
+        window.dispatchFocusEvent = function() {
+            console.log('%c[TEST] Manually dispatching focus event...', 'color: #667eea; font-weight: bold;');
+            window.logToUI('🎯 Manually dispatching focus event...', 'info');
+            window.dispatchEvent(new Event('focus'));
+            setTimeout(() => {
+                window.logToUI('✅ Focus event dispatched. No error = SUCCESS!', 'success');
+            }, 100);
+        };
+
+        window.dispatchVisibilityChangeEvent = function() {
+            console.log('%c[TEST] Manually dispatching visibilitychange event...', 'color: #667eea; font-weight: bold;');
+            window.logToUI('🎯 Manually dispatching visibilitychange event...', 'info');
+            document.dispatchEvent(new Event('visibilitychange'));
+            setTimeout(() => {
+                window.logToUI('✅ Visibilitychange event dispatched. No error = SUCCESS!', 'success');
+            }, 100);
+        };
+
+        window.dispatchFocusinEvent = function() {
+            console.log('%c[TEST] Manually dispatching focusin event...', 'color: #667eea; font-weight: bold;');
+            window.logToUI('🎯 Manually dispatching focusin event...', 'info');
+            window.dispatchEvent(new Event('focusin'));
+            setTimeout(() => {
+                window.logToUI('✅ Focusin event dispatched. No error = SUCCESS!', 'success');
+            }, 100);
+        };
+
+        window.dispatchFocusoutEvent = function() {
+            console.log('%c[TEST] Manually dispatching focusout event...', 'color: #667eea; font-weight: bold;');
+            window.logToUI('🎯 Manually dispatching focusout event...', 'info');
+            window.dispatchEvent(new Event('focusout'));
+            setTimeout(() => {
+                window.logToUI('✅ Focusout event dispatched. No error = SUCCESS!', 'success');
+            }, 100);
+        };
+
+        // Also try to register NEW listeners (these should be blocked at registration)
+        console.log('%c[POST-EXTENSION] Trying to register NEW event listeners (should be blocked at registration)...', 'color: #4caf50; font-weight: bold;');
+        
+        window.addEventListener('blur', function() {
+            console.error('❌ NEW blur listener fired! This should be BLOCKED at registration.');
+            window.logToUI('❌ FAILURE: New blur listener fired!', 'error');
+        });
+        
+        window.addEventListener('focus', function() {
+            console.error('❌ NEW focus listener fired! This should be BLOCKED at registration.');
+            window.logToUI('❌ FAILURE: New focus listener fired!', 'error');
+        });
+
+        // Update status every 2 seconds
+        setInterval(checkExtensionStatus, 2000);
+
+        console.log('%c✅ Test page ready! Switch tabs or click manual trigger buttons.', 'color: #4caf50; font-weight: bold; font-size: 14px;');
+    </script>
+</body>
+</html>
