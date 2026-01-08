@@ -21,6 +21,9 @@ This extension completely disables the Page Visibility API and window focus dete
 3. **Overriding `document.hasFocus()`**: Always returns `true`, making the document appear always focused
 4. **Blocking `visibilitychange` events**: Prevents event listeners from detecting visibility changes
 5. **Blocking `window.blur` and `window.focus` events**: Prevents event listeners from detecting when the window loses or gains focus
+6. **Blocking `window.onblur` and `window.onfocus` properties**: Prevents property-based event handlers from being set
+7. **Blocking `focusin` and `focusout` events**: Prevents event listeners from detecting focus changes
+8. **Overriding jQuery special events**: Blocks jQuery's special focus/blur event handling when jQuery is present
 
 ## Installation
 
@@ -60,9 +63,10 @@ The script:
 - Runs on all URLs (`<all_urls>`)
 - Executes in all frames (`all_frames: true`)
 - Injects a separate JS file (`inject.js`) to bypass Content Security Policy (CSP) restrictions
-- Uses `Object.defineProperty` to override API properties
-- Intercepts `addEventListener` to block `visibilitychange` event registration
-- Intercepts `Window.prototype.addEventListener` to block `blur` and `focus` event registration
+- Uses `Object.defineProperty` to override API properties and window.onblur/onfocus properties
+- Intercepts `addEventListener` to block `visibilitychange`, `blur`, `focus`, `focusin`, and `focusout` event registration
+- Intercepts `removeEventListener` to silently ignore removal of blocked events
+- Monitors for jQuery loading and overrides jQuery.event.special.focus/blur when detected
 
 ## Privacy & Permissions
 

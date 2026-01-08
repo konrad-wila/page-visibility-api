@@ -52,17 +52,18 @@
   };
   
   // Override window.onblur and window.onfocus properties to prevent property-based event handlers
-  // Store references to check if they were set before our override
+  // We store the handlers but never actually call them, effectively blocking them
   let onblurHandler = null;
   let onfocusHandler = null;
   
   Object.defineProperty(window, 'onblur', {
     get: function() {
-      return onblurHandler;
+      // Always return null to make it appear as if no handler is set
+      return null;
     },
     set: function(handler) {
       console.log('[Page Visibility API Disabler] Blocked window.onblur property assignment');
-      // Store it but don't actually set it - effectively blocks the handler
+      // Store it but never use it - effectively blocks the handler from being called
       onblurHandler = handler;
     },
     configurable: true
@@ -70,11 +71,12 @@
   
   Object.defineProperty(window, 'onfocus', {
     get: function() {
-      return onfocusHandler;
+      // Always return null to make it appear as if no handler is set
+      return null;
     },
     set: function(handler) {
       console.log('[Page Visibility API Disabler] Blocked window.onfocus property assignment');
-      // Store it but don't actually set it - effectively blocks the handler
+      // Store it but never use it - effectively blocks the handler from being called
       onfocusHandler = handler;
     },
     configurable: true
