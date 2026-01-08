@@ -50,7 +50,7 @@
     }
     return originalRemoveEventListener.call(this, type, listener, options);
   };
-  
+
   // Override EventTarget.prototype.dispatchEvent to block event dispatch at the deepest level
   // This prevents both new AND existing event listeners from firing
   const originalDispatchEvent = EventTarget.prototype.dispatchEvent;
