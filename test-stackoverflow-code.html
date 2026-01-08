@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Stack Overflow Code - jQuery blur/focus</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        #notify {
+            margin-top: 20px;
+        }
+        .alert {
+            margin: 10px 0;
+        }
+        .instructions {
+            background-color: #e7f3ff;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test: Stack Overflow jQuery Code</h1>
+        
+        <div class="instructions">
+            <h3>📝 Test Instructions</h3>
+            <p><strong>With Extension Enabled:</strong></p>
+            <ul>
+                <li>Switch to another tab and back</li>
+                <li>No alerts should appear below</li>
+                <li>Console should show blocked messages</li>
+            </ul>
+            <p><strong>Without Extension:</strong></p>
+            <ul>
+                <li>Switch to another tab and back</li>
+                <li>Alerts should appear below showing blur/focus detection</li>
+            </ul>
+        </div>
+
+        <div id="notify"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js" 
+            integrity="sha256-goy7ystDD5xbXSf+kwL4eV6zOPJCEBD1FBiCElIm+U8=" 
+            crossorigin="anonymous"></script>
+    <script>
+        // Original code from Stack Overflow
+        // http://stackoverflow.com/questions/1760250/how-to-tell-if-browser-tab-is-active
+
+        /********************
+         * global vars
+         * possible usage:
+         * - keeping track of user visits (back and forth)
+         * - turn off running events/actions until the user returns to this tab
+         ********************/
+
+        var visited = 0;
+        var $notify = $('#notify');
+
+        $(window).on('blur focus', function (e) {
+          var prevType = $(this).data('prevType');
+
+          //  reduce double fire issues
+          if (prevType != e.type) {
+            switch (e.type) {
+              case 'blur':
+                $notify.append('<div class="alert alert-warning">Why are you leaving? (User left this browser tab)</div>');
+                console.log('User left this browser tab.');
+                break;
+
+              case 'focus':
+                var msg = '<div class="alert alert-success">Welcome, User (now change tabs, then come back.)</div>';
+                if (visited > 0) {
+                  var addS = visited == 1 ? '' : 's';
+                  msg = '<div class="alert alert-info">Welcome back! User has been back to this Browser Tab :: ' + visited + ' time' + addS + '</div>';
+                }
+                $notify.append(msg);
+                visited++;
+                console.log('User is viewing this browser tab.');
+                break;
+            }
+          }
+
+          $(this).data('prevType', e.type);
+        });
+
+        // Log that the page loaded
+        console.log('%c[Test Page] Stack Overflow jQuery code loaded', 'color: #667eea; font-weight: bold;');
+        console.log('%c[Test Page] Switch tabs to test if extension blocks blur/focus events', 'color: #667eea;');
+    </script>
+</body>
+</html>

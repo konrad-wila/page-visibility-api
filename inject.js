@@ -216,36 +216,87 @@
   // This needs to be done after jQuery loads, so we use a timer to check
   // Note: This runs early at document_start, so jQuery may not be loaded yet
   function overrideJQuerySpecialEvents() {
-    if (typeof jQuery !== 'undefined' && jQuery.event && jQuery.event.special) {
-      // Override jQuery's special focus event handler
-      if (jQuery.event.special.focus) {
-        jQuery.event.special.focus = {
-          setup: function() {
-            console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.focus setup');
-            // Return false to prevent jQuery from setting up the event
-            return false;
-          },
-          teardown: function() {
-            return false;
-          }
-        };
-      }
+    if (typeof jQuery !== 'undefined') {
       
-      // Override jQuery's special blur event handler
-      if (jQuery.event.special.blur) {
-        jQuery.event.special.blur = {
-          setup: function() {
-            console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.blur setup');
-            // Return false to prevent jQuery from setting up the event
-            return false;
-          },
-          teardown: function() {
-            return false;
+      // CRITICAL FIX: Override jQuery.event.add which jQuery.on() uses internally
+      if (jQuery.event && jQuery.event.add) {
+        const originalEventAdd = jQuery.event.add;
+        
+        jQuery.event.add = function(elem, types, handler, data, selector) {
+          // Check if types contains any blocked event
+          if (typeof types === 'string') {
+            const typeArray = types.split(' ');
+            const hasBlockedType = typeArray.some(type => {
+              const cleanType = type.replace(/^on/, '').split('.')[0]; // Handle namespaced events like 'blur.namespace'
+              return BLOCKED_EVENT_TYPES.includes(cleanType);
+            });
+            
+            if (hasBlockedType) {
+              console.log(`[Page Visibility API Disabler] Blocked jQuery.event.add for: ${types}`);
+              return; // Don't add the event
+            }
           }
+          
+          return originalEventAdd.call(this, elem, types, handler, data, selector);
         };
+        
+        console.log('[Page Visibility API Disabler] jQuery.event.add overridden');
       }
-      
-      console.log('[Page Visibility API Disabler] jQuery special events overridden');
+
+      // ADDITIONAL FIX: Override jQuery.fn.on as a backup
+      if (jQuery.fn && jQuery.fn.on) {
+        const originalOn = jQuery.fn.on;
+        
+        jQuery.fn.on = function(types, selector, data, fn) {
+          if (typeof types === 'string') {
+            const typeArray = types.split(' ');
+            const hasBlockedType = typeArray.some(type => {
+              const cleanType = type.replace(/^on/, '').split('.')[0];
+              return BLOCKED_EVENT_TYPES.includes(cleanType);
+            });
+            
+            if (hasBlockedType) {
+              console.log(`[Page Visibility API Disabler] Blocked jQuery.fn.on for: ${types}`);
+              return this; // Return jQuery object for chaining but don't add event
+            }
+          }
+          
+          return originalOn.call(this, types, selector, data, fn);
+        };
+        
+        console.log('[Page Visibility API Disabler] jQuery.fn.on overridden');
+      }
+
+      // EXISTING CODE: Override jQuery's special event handlers
+      if (jQuery.event && jQuery.event.special) {
+        // Override jQuery's special focus event handler
+        if (jQuery.event.special.focus) {
+          jQuery.event.special.focus = {
+            setup: function() {
+              console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.focus setup');
+              return false;
+            },
+            teardown: function() {
+              return false;
+            }
+          };
+        }
+        
+        // Override jQuery's special blur event handler
+        if (jQuery.event.special.blur) {
+          jQuery.event.special.blur = {
+            setup: function() {
+              console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.blur setup');
+              return false;
+            },
+            teardown: function() {
+              return false;
+            }
+          };
+        }
+        
+        console.log('[Page Visibility API Disabler] jQuery special events overridden');
+      }
     }
   }
   

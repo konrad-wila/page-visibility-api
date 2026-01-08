@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Test Suite - Quick Validation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-links {
+            margin: 20px 0;
+        }
+        .test-links a {
+            display: block;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .test-links a:hover {
+            background-color: #5568d3;
+        }
+        .instructions {
+            background-color: #e7f3ff;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .status {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Extension Test Suite</h1>
+        
+        <div class="status">
+            <h3>✅ Changes Implemented</h3>
+            <ul>
+                <li>Added <code>jQuery.event.add()</code> override to block jQuery internal event registration</li>
+                <li>Added <code>jQuery.fn.on()</code> override as backup protection</li>
+                <li>Enhanced existing jQuery special event overrides</li>
+                <li>Proper handling of namespaced events (e.g., 'blur.namespace')</li>
+                <li>Added SRI integrity checks for jQuery CDN imports</li>
+            </ul>
+        </div>
+
+        <div class="instructions">
+            <h3>📝 How to Test</h3>
+            <ol>
+                <li>Make sure the Page Visibility API Disabler extension is loaded in Chrome</li>
+                <li>Click on each test link below</li>
+                <li>Follow the instructions on each test page</li>
+                <li>Verify that blur/focus events are blocked as expected</li>
+            </ol>
+        </div>
+
+        <div class="test-links">
+            <h3>🔗 Test Pages</h3>
+            <a href="test-stackoverflow-code.html" target="_blank">
+                📄 Test 1: Stack Overflow jQuery Code
+                <br><small>Tests the exact code from Stack Overflow that was bypassing the extension</small>
+            </a>
+            <a href="test-bypasses.html" target="_blank">
+                📄 Test 2: Comprehensive Bypass Test Suite
+                <br><small>Tests all known bypass methods including new jQuery tests</small>
+            </a>
+            <a href="jquery-test.html" target="_blank">
+                📄 Test 3: jQuery Event Listener Test
+                <br><small>Tests various jQuery event binding methods</small>
+            </a>
+            <a href="test.html" target="_blank">
+                📄 Test 4: Basic Extension Test
+                <br><small>Tests basic Page Visibility API blocking</small>
+            </a>
+        </div>
+
+        <div class="instructions">
+            <h3>✅ Expected Results</h3>
+            <p><strong>With Extension Enabled:</strong></p>
+            <ul>
+                <li>✅ Console shows "Blocked jQuery.event.add" messages</li>
+                <li>✅ Console shows "Blocked jQuery.fn.on" messages</li>
+                <li>✅ No blur/focus events fire when switching tabs</li>
+                <li>✅ <code>document.hidden</code> always returns <code>false</code></li>
+                <li>✅ <code>document.visibilityState</code> always returns <code>"visible"</code></li>
+                <li>✅ All test pages show "BLOCKED" status</li>
+            </ul>
+            <p><strong>Without Extension:</strong></p>
+            <ul>
+                <li>❌ Events fire when switching tabs</li>
+                <li>❌ <code>document.hidden</code> changes to <code>true</code> when tab loses focus</li>
+                <li>❌ Test pages show "BYPASS DETECTED" messages</li>
+            </ul>
+        </div>
+
+        <div class="status">
+            <h3>🔍 Console Verification</h3>
+            <p>Open the browser console (F12) and look for these messages when pages load:</p>
+            <code style="display: block; background: #1e1e1e; color: #4ec9b0; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                [Page Visibility API Disabler] jQuery.event.add overridden<br>
+                [Page Visibility API Disabler] jQuery.fn.on overridden<br>
+                [Page Visibility API Disabler] jQuery special events overridden<br>
+                [Page Visibility API Disabler] Extension active - all visibility/focus detection disabled.
+            </code>
+            <p>When you try to register blur/focus events:</p>
+            <code style="display: block; background: #1e1e1e; color: #4ec9b0; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                [Page Visibility API Disabler] Blocked jQuery.event.add for: blur focus<br>
+                [Page Visibility API Disabler] Blocked jQuery.fn.on for: blur focus
+            </code>
+        </div>
+    </div>
+</body>
+</html>
