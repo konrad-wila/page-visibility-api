@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Visibility API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .status-box {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+        .status-box.hidden {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+        .status-box.visible {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+        .property {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #1976d2;
+            font-family: monospace;
+            font-size: 18px;
+        }
+        #log {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .instructions ul {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Page Visibility API Test</h1>
+        
+        <div class="status-box" id="statusBox">
+            <div class="property">
+                <span class="label">document.hidden:</span>
+                <span class="value" id="hiddenValue">-</span>
+            </div>
+            <div class="property">
+                <span class="label">document.visibilityState:</span>
+                <span class="value" id="visibilityStateValue">-</span>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>🧪 How to Test:</h3>
+            <ul>
+                <li><strong>Without the extension:</strong> Switch to another tab or minimize the window. The values will change to show the page is hidden.</li>
+                <li><strong>With the extension:</strong> Switch to another tab or minimize the window. The values will remain unchanged, always showing the page as visible.</li>
+            </ul>
+            <p><strong>Expected with extension enabled:</strong></p>
+            <ul>
+                <li>document.hidden should always be <code>false</code></li>
+                <li>document.visibilityState should always be <code>"visible"</code></li>
+                <li>No "visibility changed" events should be logged</li>
+            </ul>
+        </div>
+
+        <h3>📋 Event Log:</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const statusBox = document.getElementById('statusBox');
+        const hiddenValue = document.getElementById('hiddenValue');
+        const visibilityStateValue = document.getElementById('visibilityStateValue');
+        const log = document.getElementById('log');
+
+        function updateStatus() {
+            const hidden = document.hidden;
+            const visibilityState = document.visibilityState;
+            
+            hiddenValue.textContent = String(hidden);
+            visibilityStateValue.textContent = visibilityState;
+            
+            // Update status box color
+            if (hidden) {
+                statusBox.className = 'status-box hidden';
+            } else {
+                statusBox.className = 'status-box visible';
+            }
+        }
+
+        function addLogEntry(message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + now.getMilliseconds();
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 50 entries
+            while (log.children.length > 50) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Initial status
+        updateStatus();
+        addLogEntry('Page loaded');
+
+        // Listen for visibility changes
+        document.addEventListener('visibilitychange', function() {
+            updateStatus();
+            addLogEntry(`👁️ Visibility changed! hidden=${document.hidden}, state=${document.visibilityState}`);
+        });
+
+        // Update status every second to show real-time values
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>
