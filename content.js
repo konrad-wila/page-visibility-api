@@ -13,6 +13,8 @@
       // Store original methods
       const originalAddEventListener = Document.prototype.addEventListener;
       const originalRemoveEventListener = Document.prototype.removeEventListener;
+      const originalWindowAddEventListener = Window.prototype.addEventListener;
+      const originalWindowRemoveEventListener = Window.prototype.removeEventListener;
       
       // Override document.hidden to always return false
       Object.defineProperty(Document.prototype, 'hidden', {
@@ -47,7 +49,24 @@
         return originalRemoveEventListener.call(this, type, listener, options);
       };
       
-      console.log('[Page Visibility API Disabler] API has been disabled. document.hidden will always return false, and visibilityState will always return "visible".');
+      // Block window blur and focus events
+      Window.prototype.addEventListener = function(type, listener, options) {
+        if (type === 'blur' || type === 'focus') {
+          // Silently ignore blur and focus event listeners
+          return;
+        }
+        return originalWindowAddEventListener.call(this, type, listener, options);
+      };
+      
+      Window.prototype.removeEventListener = function(type, listener, options) {
+        if (type === 'blur' || type === 'focus') {
+          // Silently ignore removal of blur and focus event listeners
+          return;
+        }
+        return originalWindowRemoveEventListener.call(this, type, listener, options);
+      };
+      
+      console.log('[Page Visibility API Disabler] API has been disabled. document.hidden will always return false, visibilityState will always return "visible", and window blur/focus events are blocked.');
     })();
   `;
   

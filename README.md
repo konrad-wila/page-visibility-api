@@ -14,11 +14,12 @@ Some websites use this API to pause videos, stop animations, or track user engag
 
 ## What This Extension Does
 
-This extension completely disables the Page Visibility API by:
+This extension completely disables the Page Visibility API and window focus detection by:
 
 1. **Overriding `document.hidden`**: Always returns `false`, making the page appear never hidden
 2. **Overriding `document.visibilityState`**: Always returns `"visible"`, indicating the page is always visible
 3. **Blocking `visibilitychange` events**: Prevents event listeners from detecting visibility changes
+4. **Blocking `window.blur` and `window.focus` events**: Prevents event listeners from detecting when the window loses or gains focus
 
 ## Installation
 
@@ -59,6 +60,7 @@ The script:
 - Executes in all frames (`all_frames: true`)
 - Uses `Object.defineProperty` to override API properties
 - Intercepts `addEventListener` to block `visibilitychange` event registration
+- Intercepts `Window.prototype.addEventListener` to block `blur` and `focus` event registration
 
 ## Privacy & Permissions
 

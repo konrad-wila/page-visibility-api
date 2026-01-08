@@ -235,6 +235,7 @@
                     <li>✅ document.hidden always returns <code>false</code></li>
                     <li>✅ document.visibilityState always returns <code>"visible"</code></li>
                     <li>✅ No visibility change events are logged</li>
+                    <li>✅ No window blur/focus events are logged</li>
                     <li>✅ Animations keep running when tab is hidden</li>
                 </ul>
             </div>
@@ -311,6 +312,8 @@ document.addEventListener('visibilitychange', () => {
         
         let counter = 0;
         let eventCount = 0;
+        let blurEventCount = 0;
+        let focusEventCount = 0;
         
         function updateStatus() {
             const hidden = document.hidden;
@@ -381,12 +384,14 @@ document.addEventListener('visibilitychange', () => {
         
         // Listen for focus/blur events
         window.addEventListener('focus', function() {
-            addLogEntry('🔍 Window gained focus');
+            focusEventCount++;
+            addLogEntry(`🔍 Window gained focus (Event #${focusEventCount})`);
             updateStatus();
         });
         
         window.addEventListener('blur', function() {
-            addLogEntry('😴 Window lost focus');
+            blurEventCount++;
+            addLogEntry(`😴 Window lost focus (Event #${blurEventCount})`);
             updateStatus();
         });
         
@@ -413,6 +418,13 @@ document.addEventListener('visibilitychange', () => {
                 addLogEntry('ℹ️ document.hidden is false - Extension may be active or page is visible', false);
             }
         }, 1000);
+        
+        // Log blur/focus event blocking status after 2 seconds
+        setTimeout(function() {
+            if (blurEventCount === 0 && focusEventCount === 0) {
+                addLogEntry('ℹ️ No blur/focus events detected yet - Extension is blocking them or window stayed focused', false);
+            }
+        }, 2000);
         
         console.log('%c📄 Page Visibility API Demo', 'font-size: 20px; font-weight: bold; color: #667eea;');
         console.log('%cTry these commands:', 'font-size: 14px; color: #764ba2;');

@@ -13,6 +13,8 @@
 | `document.hidden` | `true` when tab is hidden | Always `false` |
 | `document.visibilityState` | `"visible"` or `"hidden"` | Always `"visible"` |
 | `visibilitychange` event | Fires on tab switch | Never fires |
+| `window.blur` event | Fires when window loses focus | Never fires |
+| `window.focus` event | Fires when window gains focus | Never fires |
 
 ## ✅ Testing Commands
 
