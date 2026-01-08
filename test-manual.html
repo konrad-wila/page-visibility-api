@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Test - All Features</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .test-section {
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-section.pass {
+            border-color: #4caf50;
+            background-color: #e8f5e9;
+        }
+        .test-section.fail {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        #log {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry.error {
+            color: #f48771;
+        }
+        .log-entry.success {
+            color: #4ec9b0;
+        }
+        .log-entry.warning {
+            color: #dcdcaa;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Manual Test - All Extension Features</h1>
+        <p>This page tests all the features implemented by loading the inject.js script directly in the page.</p>
+        <p><strong>Instructions:</strong> Open this file in your browser WITH the extension enabled, then switch tabs and come back to see the results.</p>
+    </div>
+
+    <div class="container">
+        <h2>Test Results</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="container">
+        <h2>Event Log</h2>
+        <div style="text-align: right; margin-bottom: 10px;">
+            <button onclick="clearLog()">Clear Log</button>
+            <button onclick="runTests()">Re-run Tests</button>
+        </div>
+        <div id="log"></div>
+    </div>
+
+    <!-- Load inject.js to test functionality -->
+    <script src="inject.js"></script>
+
+    <script>
+        const log = document.getElementById('log');
+        const testResults = document.getElementById('testResults');
+        let testsPassed = 0;
+        let testsFailed = 0;
+
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            entry.innerHTML = `[${timestamp}] ${message}`;
+            log.insertBefore(entry, log.firstChild);
+        }
+
+        function clearLog() {
+            log.innerHTML = '';
+            addLogEntry('Log cleared', 'warning');
+        }
+
+        function addTestResult(testName, passed, details) {
+            const section = document.createElement('div');
+            section.className = `test-section ${passed ? 'pass' : 'fail'}`;
+            section.innerHTML = `
+                <strong>${passed ? '✅' : '❌'} ${testName}</strong>
+                <p>${details}</p>
+            `;
+            testResults.appendChild(section);
+            
+            if (passed) {
+                testsPassed++;
+                addLogEntry(`✅ ${testName}: PASSED`, 'success');
+            } else {
+                testsFailed++;
+                addLogEntry(`❌ ${testName}: FAILED - ${details}`, 'error');
+            }
+        }
+
+        function runTests() {
+            testResults.innerHTML = '';
+            testsPassed = 0;
+            testsFailed = 0;
+            
+            addLogEntry('Starting test suite...', 'warning');
+
+            // Test 1: document.hidden
+            const hiddenValue = document.hidden;
+            addTestResult(
+                'Test 1: document.hidden override',
+                hiddenValue === false,
+                `document.hidden = ${hiddenValue} (expected: false)`
+            );
+
+            // Test 2: document.visibilityState
+            const visibilityState = document.visibilityState;
+            addTestResult(
+                'Test 2: document.visibilityState override',
+                visibilityState === 'visible',
+                `document.visibilityState = "${visibilityState}" (expected: "visible")`
+            );
+
+            // Test 3: document.hasFocus()
+            const hasFocus = document.hasFocus();
+            addTestResult(
+                'Test 3: document.hasFocus() override',
+                hasFocus === true,
+                `document.hasFocus() = ${hasFocus} (expected: true)`
+            );
+
+            // Test 4: window.onblur property
+            let onblurFired = false;
+            window.onblur = function() { onblurFired = true; };
+            const onblurValue = window.onblur;
+            addTestResult(
+                'Test 4: window.onblur property override',
+                onblurValue === null,
+                `window.onblur = ${onblurValue} (expected: null, handler should be blocked)`
+            );
+
+            // Test 5: window.onfocus property
+            let onfocusFired = false;
+            window.onfocus = function() { onfocusFired = true; };
+            const onfocusValue = window.onfocus;
+            addTestResult(
+                'Test 5: window.onfocus property override',
+                onfocusValue === null,
+                `window.onfocus = ${onfocusValue} (expected: null, handler should be blocked)`
+            );
+
+            // Test 6-10: Event listener blocking tests
+            let visibilitychangeFired = false;
+            let blurFired = false;
+            let focusFired = false;
+            let focusinFired = false;
+            let focusoutFired = false;
+
+            document.addEventListener('visibilitychange', function() { visibilitychangeFired = true; });
+            window.addEventListener('blur', function() { blurFired = true; });
+            window.addEventListener('focus', function() { focusFired = true; });
+            window.addEventListener('focusin', function() { focusinFired = true; });
+            window.addEventListener('focusout', function() { focusoutFired = true; });
+
+            // Give a moment for events to potentially fire
+            setTimeout(function() {
+                addTestResult(
+                    'Test 6: visibilitychange event blocked',
+                    !visibilitychangeFired,
+                    visibilitychangeFired ? 'Event fired (should be blocked)' : 'Event properly blocked'
+                );
+
+                addTestResult(
+                    'Test 7: blur event blocked',
+                    !blurFired,
+                    blurFired ? 'Event fired (should be blocked)' : 'Event properly blocked'
+                );
+
+                addTestResult(
+                    'Test 8: focus event blocked',
+                    !focusFired,
+                    focusFired ? 'Event fired (should be blocked)' : 'Event properly blocked'
+                );
+
+                addTestResult(
+                    'Test 9: focusin event blocked',
+                    !focusinFired,
+                    focusinFired ? 'Event fired (should be blocked)' : 'Event properly blocked'
+                );
+
+                addTestResult(
+                    'Test 10: focusout event blocked',
+                    !focusoutFired,
+                    focusoutFired ? 'Event fired (should be blocked)' : 'Event properly blocked'
+                );
+
+                // Summary
+                const summary = document.createElement('div');
+                summary.className = `test-section ${testsFailed === 0 ? 'pass' : 'fail'}`;
+                summary.innerHTML = `
+                    <h3>Test Summary</h3>
+                    <p><strong>Passed:</strong> ${testsPassed} / ${testsPassed + testsFailed}</p>
+                    <p><strong>Failed:</strong> ${testsFailed} / ${testsPassed + testsFailed}</p>
+                    <p><strong>Status:</strong> ${testsFailed === 0 ? 'ALL TESTS PASSED ✅' : 'SOME TESTS FAILED ❌'}</p>
+                `;
+                testResults.appendChild(summary);
+
+                addLogEntry(`Test suite completed: ${testsPassed} passed, ${testsFailed} failed`, testsFailed === 0 ? 'success' : 'error');
+            }, 100);
+        }
+
+        // Run tests on load
+        addLogEntry('Page loaded', 'success');
+        runTests();
+
+        // Monitor for actual events (these should never fire with extension active)
+        document.addEventListener('visibilitychange', function() {
+            addLogEntry('⚠️ WARNING: visibilitychange event actually fired!', 'error');
+        });
+
+        window.addEventListener('blur', function() {
+            addLogEntry('⚠️ WARNING: blur event actually fired!', 'error');
+        });
+
+        window.addEventListener('focus', function() {
+            addLogEntry('⚠️ WARNING: focus event actually fired!', 'error');
+        });
+
+        window.addEventListener('focusin', function() {
+            addLogEntry('⚠️ WARNING: focusin event actually fired!', 'error');
+        });
+
+        window.addEventListener('focusout', function() {
+            addLogEntry('⚠️ WARNING: focusout event actually fired!', 'error');
+        });
+
+        // Heartbeat
+        setInterval(function() {
+            addLogEntry('💓 Heartbeat - Switch tabs to test!', 'success');
+        }, 10000);
+    </script>
+</body>
+</html>

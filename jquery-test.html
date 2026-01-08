@@ -230,6 +230,29 @@
             addLogEntry('🚨 ' + message, 'error');
         });
 
+        // Test 5: jQuery focusin/focusout events
+        console.log('%c[Test] Registering jQuery focusin/focusout event listeners...', 'color: #667eea; font-weight: bold;');
+        $(window).on('focusin', function(e) {
+            const message = 'jQuery focusin event fired!';
+            console.log('%c[jQuery Event] ' + message, 'color: #f44336; font-weight: bold;');
+            addLogEntry(`🚨 ${message}`, 'error');
+        });
+
+        $(window).on('focusout', function(e) {
+            const message = 'jQuery focusout event fired!';
+            console.log('%c[jQuery Event] ' + message, 'color: #f44336; font-weight: bold;');
+            addLogEntry(`🚨 ${message}`, 'error');
+        });
+
+        // Test 6: Check jQuery.event.special
+        console.log('%c[Test] Checking jQuery.event.special overrides...', 'color: #667eea; font-weight: bold;');
+        if (jQuery.event.special && jQuery.event.special.focus) {
+            console.log('%cjQuery.event.special.focus:', jQuery.event.special.focus, 'color: #9cdcfe;');
+        }
+        if (jQuery.event.special && jQuery.event.special.blur) {
+            console.log('%cjQuery.event.special.blur:', jQuery.event.special.blur, 'color: #9cdcfe;');
+        }
+
         // Update status every 2 seconds
         setInterval(function() {
             checkExtensionStatus();
