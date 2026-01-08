@@ -4,6 +4,9 @@
 (function() {
   'use strict';
   
+  // List of event types that should be blocked
+  const BLOCKED_EVENT_TYPES = ['visibilitychange', 'blur', 'focus', 'focusin', 'focusout'];
+  
   // Store original methods from EventTarget.prototype to catch all event registrations
   // This is more effective than overriding Window/Document separately as EventTarget
   // is the base prototype for all event-capable objects (Window, Document, Element, etc.)
@@ -35,7 +38,7 @@
   // This catches ALL event registrations, including those from jQuery and other libraries
   // that cache the native addEventListener method
   EventTarget.prototype.addEventListener = function(type, listener, options) {
-    if (type === 'visibilitychange' || type === 'blur' || type === 'focus' || type === 'focusin' || type === 'focusout') {
+    if (BLOCKED_EVENT_TYPES.includes(type)) {
       // Log and silently ignore these event listeners
       console.log(`[Page Visibility API Disabler] Blocked ${type} event listener`);
       return;
@@ -44,11 +47,25 @@
   };
   
   EventTarget.prototype.removeEventListener = function(type, listener, options) {
-    if (type === 'visibilitychange' || type === 'blur' || type === 'focus' || type === 'focusin' || type === 'focusout') {
+    if (BLOCKED_EVENT_TYPES.includes(type)) {
       // Silently ignore removal of these event listeners
       return;
     }
     return originalRemoveEventListener.call(this, type, listener, options);
+  };
+
+  // Override EventTarget.prototype.dispatchEvent to block event dispatch at the deepest level
+  // This prevents both new AND existing event listeners from firing
+  const originalDispatchEvent = EventTarget.prototype.dispatchEvent;
+  
+  EventTarget.prototype.dispatchEvent = function(event) {
+    if (BLOCKED_EVENT_TYPES.includes(event.type)) {
+      console.log(`[Page Visibility API Disabler] Blocked ${event.type} event dispatch`);
+      // Return true to indicate event was "handled" without errors
+      return true;
+    }
+    
+    return originalDispatchEvent.call(this, event);
   };
   
   // Override window.onblur and window.onfocus properties to prevent property-based event handlers
