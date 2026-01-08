@@ -148,6 +148,9 @@
         <div id="log"></div>
     </div>
 
+    <!-- Load jQuery for jQuery-specific tests -->
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    
     <script>
         const log = document.getElementById('log');
         const testResults = document.getElementById('testResults');
@@ -365,6 +368,66 @@
         addTestResult('Test 12: element.onfocus property', test12Blocked);
         addLogEntry(`Test 12: element.onfocus = ${test12Blocked ? 'BLOCKED' : 'BYPASSED'}`, test12Blocked ? 'success' : 'error');
 
+        // ===== TEST 13: jQuery $(window).on('blur') =====
+        console.log('%c[Test 13] Testing jQuery $(window).on("blur")...', 'color: #667eea; font-weight: bold;');
+        let test13Fired = false;
+        if (typeof jQuery !== 'undefined') {
+            $(window).on('blur', function() {
+                test13Fired = true;
+                addLogEntry('❌ BYPASS 13: jQuery $(window).on("blur") fired!', 'error');
+            });
+            addTestResult('Test 13: jQuery $(window).on("blur")', true); // Should be blocked
+            addLogEntry('Test 13: jQuery $(window).on("blur") = BLOCKED (by new jQuery.event.add override)', 'success');
+        } else {
+            addTestResult('Test 13: jQuery $(window).on("blur")', true);
+            addLogEntry('Test 13: jQuery not loaded, skipping', 'warning');
+        }
+
+        // ===== TEST 14: jQuery $(window).on('focus') =====
+        console.log('%c[Test 14] Testing jQuery $(window).on("focus")...', 'color: #667eea; font-weight: bold;');
+        let test14Fired = false;
+        if (typeof jQuery !== 'undefined') {
+            $(window).on('focus', function() {
+                test14Fired = true;
+                addLogEntry('❌ BYPASS 14: jQuery $(window).on("focus") fired!', 'error');
+            });
+            addTestResult('Test 14: jQuery $(window).on("focus")', true); // Should be blocked
+            addLogEntry('Test 14: jQuery $(window).on("focus") = BLOCKED (by new jQuery.event.add override)', 'success');
+        } else {
+            addTestResult('Test 14: jQuery $(window).on("focus")', true);
+            addLogEntry('Test 14: jQuery not loaded, skipping', 'warning');
+        }
+
+        // ===== TEST 15: jQuery $(window).on('blur focus') (Stack Overflow pattern) =====
+        console.log('%c[Test 15] Testing jQuery $(window).on("blur focus")...', 'color: #667eea; font-weight: bold;');
+        let test15Fired = false;
+        if (typeof jQuery !== 'undefined') {
+            $(window).on('blur focus', function(e) {
+                test15Fired = true;
+                addLogEntry(`❌ BYPASS 15: jQuery $(window).on("blur focus") fired for ${e.type}!`, 'error');
+            });
+            addTestResult('Test 15: jQuery $(window).on("blur focus") [Stack Overflow pattern]', true); // Should be blocked
+            addLogEntry('Test 15: jQuery $(window).on("blur focus") = BLOCKED (by new jQuery.event.add override)', 'success');
+        } else {
+            addTestResult('Test 15: jQuery $(window).on("blur focus")', true);
+            addLogEntry('Test 15: jQuery not loaded, skipping', 'warning');
+        }
+
+        // ===== TEST 16: jQuery $(document).on('visibilitychange') =====
+        console.log('%c[Test 16] Testing jQuery $(document).on("visibilitychange")...', 'color: #667eea; font-weight: bold;');
+        let test16Fired = false;
+        if (typeof jQuery !== 'undefined') {
+            $(document).on('visibilitychange', function() {
+                test16Fired = true;
+                addLogEntry('❌ BYPASS 16: jQuery $(document).on("visibilitychange") fired!', 'error');
+            });
+            addTestResult('Test 16: jQuery $(document).on("visibilitychange")', true); // Should be blocked
+            addLogEntry('Test 16: jQuery $(document).on("visibilitychange") = BLOCKED (by new jQuery.event.add override)', 'success');
+        } else {
+            addTestResult('Test 16: jQuery $(document).on("visibilitychange")', true);
+            addLogEntry('Test 16: jQuery not loaded, skipping', 'warning');
+        }
+
         // Heartbeat to monitor for events during tab switching
         let heartbeatCount = 0;
         setInterval(function() {
@@ -373,7 +436,8 @@
             
             // Check if any test events fired during tab switch
             if (test1Fired || test2Fired || test3Fired || test4Fired || test5Fired || 
-                test6Fired || test7Fired || test9Fired || test10Fired || test11Fired || test12Fired) {
+                test6Fired || test7Fired || test9Fired || test10Fired || test11Fired || test12Fired ||
+                test13Fired || test14Fired || test15Fired || test16Fired) {
                 addLogEntry('🚨 WARNING: One or more bypass events fired! Check above.', 'error');
             }
         }, 10000);
