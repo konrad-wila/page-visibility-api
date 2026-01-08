@@ -14,16 +14,33 @@ Some websites use this API to pause videos, stop animations, or track user engag
 
 ## What This Extension Does
 
-This extension completely disables the Page Visibility API and window focus detection by:
+This extension completely disables the Page Visibility API and window focus detection using a **comprehensive, multi-layered blocking approach** that intercepts ALL possible event registration and detection methods:
 
+### Core API Overrides
 1. **Overriding `document.hidden`**: Always returns `false`, making the page appear never hidden
 2. **Overriding `document.visibilityState`**: Always returns `"visible"`, indicating the page is always visible
 3. **Overriding `document.hasFocus()`**: Always returns `true`, making the document appear always focused
-4. **Blocking `visibilitychange` events**: Prevents event listeners from detecting visibility changes
-5. **Blocking `window.blur` and `window.focus` events**: Prevents event listeners from detecting when the window loses or gains focus
-6. **Blocking `window.onblur` and `window.onfocus` properties**: Prevents property-based event handlers from being set
-7. **Blocking `focusin` and `focusout` events**: Prevents event listeners from detecting focus changes
-8. **Overriding jQuery special events**: Blocks jQuery's special focus/blur event handling when jQuery is present
+
+### Layer 1: EventTarget.prototype Blocking
+4. **Blocking `addEventListener()`**: Intercepts all calls to register event listeners for blocked events (visibilitychange, blur, focus, focusin, focusout)
+5. **Blocking `removeEventListener()`**: Silently ignores removal attempts for blocked events
+6. **Blocking `dispatchEvent()`**: Prevents synthetic event dispatching for blocked event types
+
+### Layer 2: Property Setter Blocking
+7. **Blocking `window.onblur` and `window.onfocus`**: Property assignments are silently ignored, getters return null
+8. **Blocking `document.onvisibilitychange`**: Property assignments are silently ignored, getter returns null
+9. **Blocking `element.onblur` and `element.onfocus`**: Inline property handlers on all HTML elements are blocked via HTMLElement.prototype
+
+### Layer 3: Synthetic Event Prevention
+10. **Event constructor wrapper**: Intercepts `new Event('blur')` and similar, replacing blocked event types with dummy events
+
+### Layer 4: HTML Attribute Protection
+11. **MutationObserver monitoring**: Watches for and immediately removes inline HTML attribute handlers like `<div onblur="...">`
+
+### Layer 5: Framework Compatibility
+12. **Zone.js handling**: Detects and patches Angular's Zone.js event system when present
+13. **jQuery special events**: Overrides jQuery's special focus/blur event handling when jQuery is loaded
+14. **React/Vue compatibility**: Works automatically via EventTarget overrides (these frameworks use addEventListener internally)
 
 ## Installation
 
@@ -59,14 +76,60 @@ To verify it's working:
 
 The extension uses a content script that runs at `document_start` to inject code into the page context before any page scripts execute. This ensures the API is overridden before websites can detect the original behavior.
 
+### Multi-Layered Protection Architecture
+
+The extension implements six layers of protection to ensure comprehensive blocking:
+
+**Layer 1: Core EventTarget Overrides**
+- Intercepts `EventTarget.prototype.addEventListener` to block registration
+- Intercepts `EventTarget.prototype.removeEventListener` to ignore removals
+- Intercepts `EventTarget.prototype.dispatchEvent` to prevent event firing
+- Catches ALL event registrations including jQuery cached methods
+
+**Layer 2: Property Setter Blocking**
+- Uses `Object.defineProperty()` on Window, Document.prototype, and HTMLElement.prototype
+- Blocks inline handlers: `window.onblur`, `window.onfocus`, `document.onvisibilitychange`
+- Blocks element handlers: `element.onblur`, `element.onfocus` on all HTML elements
+- Getters return `null`, setters silently ignore assignments
+
+**Layer 3: Synthetic Event Interception**
+- Wraps `window.Event` constructor to replace blocked event types with dummy events
+- Prevents `new Event('blur')` and similar from creating functional blocked events
+- Maintains prototype chain compatibility
+
+**Layer 4: MutationObserver for HTML Attributes**
+- Watches for inline HTML attributes being added: `<body onblur="...">`, `<div onfocus="...">`
+- Removes them immediately when detected via `removeAttribute()`
+- Monitors entire DOM tree with `subtree: true`
+
+**Layer 5: Framework-Specific Handling**
+- **Angular/Zone.js**: Detects and overrides Zone's patched event methods when present
+- **jQuery**: Overrides `jQuery.event.special.focus` and `blur` when jQuery loads
+- **React/Vue**: Already covered by EventTarget overrides (use addEventListener internally)
+
+**Layer 6: CSP Bypass**
+- Injects a separate JS file (`inject.js`) to bypass Content Security Policy restrictions
+- Runs in page context with full access to modify prototypes
+
+### Coverage Matrix
+
+| Method | Status |
+|--------|--------|
+| `addEventListener('blur')` | ✅ Blocked |
+| `element.onblur = fn` | ✅ Blocked |
+| `<div onblur="...">` | ✅ Blocked (removed) |
+| `setAttribute('onblur', ...)` | ✅ Blocked (removed) |
+| `dispatchEvent(new Event('blur'))` | ✅ Blocked |
+| `new Event('blur')` | ✅ Blocked (dummy event) |
+| jQuery cached methods | ✅ Blocked |
+| React/Vue events | ✅ Blocked |
+| Angular/Zone.js | ✅ Blocked |
+
 The script:
 - Runs on all URLs (`<all_urls>`)
 - Executes in all frames (`all_frames: true`)
-- Injects a separate JS file (`inject.js`) to bypass Content Security Policy (CSP) restrictions
-- Uses `Object.defineProperty` to override API properties and window.onblur/onfocus properties
-- Intercepts `addEventListener` to block `visibilitychange`, `blur`, `focus`, `focusin`, and `focusout` event registration
-- Intercepts `removeEventListener` to silently ignore removal of blocked events
-- Monitors for jQuery loading and overrides jQuery.event.special.focus/blur when detected
+- Runs at `document_start` timing to override APIs before page scripts
+- Uses multiple interception layers to ensure no bypass methods work
 
 ## Privacy & Permissions
 

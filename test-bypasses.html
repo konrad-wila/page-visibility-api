@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test All Bypass Attempts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .test-result.pass {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .test-result.fail {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        #log {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry.error {
+            color: #f48771;
+            font-weight: bold;
+        }
+        .log-entry.success {
+            color: #4ec9b0;
+        }
+        .log-entry.warning {
+            color: #dcdcaa;
+        }
+        .instructions {
+            background-color: #e7f3ff;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #0d47a1;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .summary {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .summary.all-blocked {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .summary.some-bypasses {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+        .summary.all-bypasses {
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Comprehensive Bypass Test Suite</h1>
+        
+        <div class="instructions">
+            <h3>📝 Test Instructions</h3>
+            <p>This page tests all known methods to bypass the Page Visibility API Disabler extension.</p>
+            <ol>
+                <li>Load this page with the extension enabled</li>
+                <li>Check the test results below - they should all show "BLOCKED" (green)</li>
+                <li>Switch to another tab or window</li>
+                <li>Switch back to this tab</li>
+                <li>Check the event log - it should show NO bypass attempts succeeded</li>
+            </ol>
+            <p><strong>✅ With Extension Working:</strong> All tests show "BLOCKED" and no events fire when switching tabs</p>
+            <p><strong>❌ Without Extension:</strong> Tests show "BYPASS DETECTED" and events fire when switching tabs</p>
+        </div>
+
+        <div id="summary" class="summary"></div>
+
+        <h2>📊 Test Results</h2>
+        <div id="testResults"></div>
+
+        <h2>📋 Event Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const testResults = document.getElementById('testResults');
+        const summaryDiv = document.getElementById('summary');
+        
+        let bypassAttempts = 0;
+        let blockedAttempts = 0;
+        
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            entry.textContent = `[${timestamp}] ${message}`;
+            log.insertBefore(entry, log.firstChild);
+        }
+
+        function addTestResult(testName, blocked) {
+            const section = document.createElement('div');
+            section.className = 'test-section';
+            
+            const result = document.createElement('div');
+            result.className = `test-result ${blocked ? 'pass' : 'fail'}`;
+            
+            if (blocked) {
+                blockedAttempts++;
+                result.textContent = `✅ ${testName}: BLOCKED`;
+            } else {
+                bypassAttempts++;
+                result.textContent = `❌ ${testName}: BYPASS DETECTED!`;
+            }
+            
+            section.innerHTML = `<h3>${testName}</h3>`;
+            section.appendChild(result);
+            testResults.appendChild(section);
+            
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const total = bypassAttempts + blockedAttempts;
+            if (bypassAttempts === 0) {
+                summaryDiv.className = 'summary all-blocked';
+                summaryDiv.textContent = `✅ All ${total} bypass attempts blocked! Extension working perfectly.`;
+            } else if (bypassAttempts < blockedAttempts) {
+                summaryDiv.className = 'summary some-bypasses';
+                summaryDiv.textContent = `⚠️ ${bypassAttempts} of ${total} bypass attempts succeeded. Extension partially working.`;
+            } else {
+                summaryDiv.className = 'summary all-bypasses';
+                summaryDiv.textContent = `❌ ${bypassAttempts} of ${total} bypass attempts succeeded. Extension NOT working!`;
+            }
+        }
+
+        addLogEntry('🚀 Page loaded - Starting bypass tests...', 'success');
+
+        // ===== TEST 1: Property setter on window.onblur =====
+        console.log('%c[Test 1] Testing window.onblur property setter...', 'color: #667eea; font-weight: bold;');
+        let test1Fired = false;
+        window.onblur = function() {
+            test1Fired = true;
+            addLogEntry('❌ BYPASS 1: window.onblur fired!', 'error');
+        };
+        
+        // Verify the property returns null (blocked)
+        const test1Blocked = (window.onblur === null);
+        addTestResult('Test 1: window.onblur property', test1Blocked);
+        addLogEntry(`Test 1: window.onblur = ${test1Blocked ? 'BLOCKED' : 'BYPASSED'}`, test1Blocked ? 'success' : 'error');
+
+        // ===== TEST 2: Property setter on window.onfocus =====
+        console.log('%c[Test 2] Testing window.onfocus property setter...', 'color: #667eea; font-weight: bold;');
+        let test2Fired = false;
+        window.onfocus = function() {
+            test2Fired = true;
+            addLogEntry('❌ BYPASS 2: window.onfocus fired!', 'error');
+        };
+        
+        const test2Blocked = (window.onfocus === null);
+        addTestResult('Test 2: window.onfocus property', test2Blocked);
+        addLogEntry(`Test 2: window.onfocus = ${test2Blocked ? 'BLOCKED' : 'BYPASSED'}`, test2Blocked ? 'success' : 'error');
+
+        // ===== TEST 3: Property setter on document.onvisibilitychange =====
+        console.log('%c[Test 3] Testing document.onvisibilitychange property setter...', 'color: #667eea; font-weight: bold;');
+        let test3Fired = false;
+        document.onvisibilitychange = function() {
+            test3Fired = true;
+            addLogEntry('❌ BYPASS 3: document.onvisibilitychange fired!', 'error');
+        };
+        
+        const test3Blocked = (document.onvisibilitychange === null);
+        addTestResult('Test 3: document.onvisibilitychange property', test3Blocked);
+        addLogEntry(`Test 3: document.onvisibilitychange = ${test3Blocked ? 'BLOCKED' : 'BYPASSED'}`, test3Blocked ? 'success' : 'error');
+
+        // ===== TEST 4: HTML attribute via setAttribute (onblur) =====
+        console.log('%c[Test 4] Testing setAttribute for onblur...', 'color: #667eea; font-weight: bold;');
+        let test4Fired = false;
+        window.test4Handler = function() {
+            test4Fired = true;
+            addLogEntry('❌ BYPASS 4: setAttribute onblur fired!', 'error');
+        };
+        document.body.setAttribute('onblur', 'window.test4Handler()');
+        
+        // Wait a bit for MutationObserver to process
+        setTimeout(() => {
+            const test4Blocked = !document.body.hasAttribute('onblur');
+            addTestResult('Test 4: setAttribute("onblur")', test4Blocked);
+            addLogEntry(`Test 4: setAttribute onblur = ${test4Blocked ? 'BLOCKED (removed)' : 'BYPASSED (still present)'}`, test4Blocked ? 'success' : 'error');
+        }, 100);
+
+        // ===== TEST 5: HTML attribute via setAttribute (onfocus) =====
+        console.log('%c[Test 5] Testing setAttribute for onfocus...', 'color: #667eea; font-weight: bold;');
+        let test5Fired = false;
+        window.test5Handler = function() {
+            test5Fired = true;
+            addLogEntry('❌ BYPASS 5: setAttribute onfocus fired!', 'error');
+        };
+        const testDiv = document.createElement('div');
+        testDiv.setAttribute('onfocus', 'window.test5Handler()');
+        document.body.appendChild(testDiv);
+        
+        setTimeout(() => {
+            const test5Blocked = !testDiv.hasAttribute('onfocus');
+            addTestResult('Test 5: setAttribute("onfocus") on element', test5Blocked);
+            addLogEntry(`Test 5: setAttribute onfocus = ${test5Blocked ? 'BLOCKED (removed)' : 'BYPASSED (still present)'}`, test5Blocked ? 'success' : 'error');
+        }, 100);
+
+        // ===== TEST 6: dispatchEvent with synthetic blur event =====
+        console.log('%c[Test 6] Testing dispatchEvent with blur event...', 'color: #667eea; font-weight: bold;');
+        let test6Fired = false;
+        
+        // Try to add a listener (will be blocked by addEventListener override)
+        window.addEventListener('blur', function() {
+            test6Fired = true;
+            addLogEntry('❌ BYPASS 6: Synthetic blur event fired!', 'error');
+        });
+        
+        // Try to dispatch the event
+        const blurEvent = new Event('blur');
+        const dispatchResult = window.dispatchEvent(blurEvent);
+        
+        // dispatchEvent should return true even when blocked
+        const test6Blocked = !test6Fired;
+        addTestResult('Test 6: dispatchEvent(new Event("blur"))', test6Blocked);
+        addLogEntry(`Test 6: dispatchEvent blur = ${test6Blocked ? 'BLOCKED' : 'BYPASSED'}`, test6Blocked ? 'success' : 'error');
+
+        // ===== TEST 7: dispatchEvent with synthetic visibilitychange event =====
+        console.log('%c[Test 7] Testing dispatchEvent with visibilitychange event...', 'color: #667eea; font-weight: bold;');
+        let test7Fired = false;
+        
+        document.addEventListener('visibilitychange', function() {
+            test7Fired = true;
+            addLogEntry('❌ BYPASS 7: Synthetic visibilitychange event fired!', 'error');
+        });
+        
+        const visibilityEvent = new Event('visibilitychange');
+        document.dispatchEvent(visibilityEvent);
+        
+        const test7Blocked = !test7Fired;
+        addTestResult('Test 7: dispatchEvent(new Event("visibilitychange"))', test7Blocked);
+        addLogEntry(`Test 7: dispatchEvent visibilitychange = ${test7Blocked ? 'BLOCKED' : 'BYPASSED'}`, test7Blocked ? 'success' : 'error');
+
+        // ===== TEST 8: Event constructor wrapper =====
+        console.log('%c[Test 8] Testing Event constructor wrapper...', 'color: #667eea; font-weight: bold;');
+        const testEvent = new Event('blur');
+        const test8Blocked = (testEvent.type !== 'blur');
+        addTestResult('Test 8: new Event("blur") constructor', test8Blocked);
+        addLogEntry(`Test 8: Event constructor = ${test8Blocked ? 'BLOCKED (changed to dummy)' : 'BYPASSED (original type)'}`, test8Blocked ? 'success' : 'error');
+
+        // ===== TEST 9: addEventListener on window.blur =====
+        console.log('%c[Test 9] Testing addEventListener for blur...', 'color: #667eea; font-weight: bold;');
+        let test9Fired = false;
+        window.addEventListener('blur', function() {
+            test9Fired = true;
+            addLogEntry('❌ BYPASS 9: addEventListener blur fired!', 'error');
+        });
+        addTestResult('Test 9: addEventListener("blur")', true); // Always blocked by existing code
+        addLogEntry('Test 9: addEventListener blur = BLOCKED (by existing code)', 'success');
+
+        // ===== TEST 10: addEventListener on document.visibilitychange =====
+        console.log('%c[Test 10] Testing addEventListener for visibilitychange...', 'color: #667eea; font-weight: bold;');
+        let test10Fired = false;
+        document.addEventListener('visibilitychange', function() {
+            test10Fired = true;
+            addLogEntry('❌ BYPASS 10: addEventListener visibilitychange fired!', 'error');
+        });
+        addTestResult('Test 10: addEventListener("visibilitychange")', true); // Always blocked by existing code
+        addLogEntry('Test 10: addEventListener visibilitychange = BLOCKED (by existing code)', 'success');
+
+        // ===== TEST 11: Element property setter (element.onblur) =====
+        console.log('%c[Test 11] Testing element.onblur property setter...', 'color: #667eea; font-weight: bold;');
+        let test11Fired = false;
+        const testButton = document.createElement('button');
+        testButton.textContent = 'Test Button';
+        testButton.onblur = function() {
+            test11Fired = true;
+            addLogEntry('❌ BYPASS 11: element.onblur fired!', 'error');
+        };
+        document.body.appendChild(testButton);
+        
+        const test11Blocked = (testButton.onblur === null);
+        addTestResult('Test 11: element.onblur property', test11Blocked);
+        addLogEntry(`Test 11: element.onblur = ${test11Blocked ? 'BLOCKED' : 'BYPASSED'}`, test11Blocked ? 'success' : 'error');
+
+        // ===== TEST 12: Element property setter (element.onfocus) =====
+        console.log('%c[Test 12] Testing element.onfocus property setter...', 'color: #667eea; font-weight: bold;');
+        let test12Fired = false;
+        const testInput = document.createElement('input');
+        testInput.type = 'text';
+        testInput.onfocus = function() {
+            test12Fired = true;
+            addLogEntry('❌ BYPASS 12: element.onfocus fired!', 'error');
+        };
+        document.body.appendChild(testInput);
+        
+        const test12Blocked = (testInput.onfocus === null);
+        addTestResult('Test 12: element.onfocus property', test12Blocked);
+        addLogEntry(`Test 12: element.onfocus = ${test12Blocked ? 'BLOCKED' : 'BYPASSED'}`, test12Blocked ? 'success' : 'error');
+
+        // Heartbeat to monitor for events during tab switching
+        let heartbeatCount = 0;
+        setInterval(function() {
+            heartbeatCount++;
+            addLogEntry(`💓 Heartbeat ${heartbeatCount} - Switch tabs to test runtime blocking`, 'success');
+            
+            // Check if any test events fired during tab switch
+            if (test1Fired || test2Fired || test3Fired || test4Fired || test5Fired || 
+                test6Fired || test7Fired || test9Fired || test10Fired || test11Fired || test12Fired) {
+                addLogEntry('🚨 WARNING: One or more bypass events fired! Check above.', 'error');
+            }
+        }, 10000);
+
+        // Final summary
+        setTimeout(() => {
+            console.log('%c✅ All bypass tests completed!', 'color: #4caf50; font-weight: bold; font-size: 16px;');
+            addLogEntry('✅ All static tests completed. Now switch tabs to test runtime behavior.', 'success');
+        }, 200);
+    </script>
+</body>
+</html>

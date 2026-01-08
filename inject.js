@@ -99,6 +99,127 @@
     configurable: true
   });
   
+  // Override document.onvisibilitychange property to prevent property-based event handlers
+  let onvisibilitychangeHandler = null;
+  
+  Object.defineProperty(Document.prototype, 'onvisibilitychange', {
+    get: function() {
+      // Always return null to make it appear as if no handler is set
+      return null;
+    },
+    set: function(handler) {
+      console.log('[Page Visibility API Disabler] Blocked document.onvisibilitychange property assignment');
+      // Store it but never use it - effectively blocks the handler from being called
+      onvisibilitychangeHandler = handler;
+    },
+    configurable: true
+  });
+  
+  // Override HTMLElement.prototype.onblur and onfocus properties
+  // This catches property assignments on any HTML element (div, body, etc.)
+  Object.defineProperty(HTMLElement.prototype, 'onblur', {
+    get: function() {
+      return null;
+    },
+    set: function(handler) {
+      console.log('[Page Visibility API Disabler] Blocked element.onblur property assignment');
+    },
+    configurable: true
+  });
+  
+  Object.defineProperty(HTMLElement.prototype, 'onfocus', {
+    get: function() {
+      return null;
+    },
+    set: function(handler) {
+      console.log('[Page Visibility API Disabler] Blocked element.onfocus property assignment');
+    },
+    configurable: true
+  });
+  
+  // Override Event constructor to prevent creating blocked event types
+  const OriginalEvent = window.Event;
+  window.Event = function(type, eventInitDict) {
+    if (BLOCKED_EVENT_TYPES.includes(type)) {
+      console.log(`[Page Visibility API Disabler] Blocked Event constructor for type: ${type}`);
+      // Return a dummy event instead
+      return new OriginalEvent('dummy-blocked-event', eventInitDict);
+    }
+    return new OriginalEvent(type, eventInitDict);
+  };
+  // Preserve the prototype chain
+  window.Event.prototype = OriginalEvent.prototype;
+  
+  // MutationObserver to watch for and remove inline HTML attribute event handlers
+  // This prevents event handlers added via setAttribute or directly in HTML
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes') {
+        const attrName = mutation.attributeName;
+        // Check if it's one of the blocked event attributes
+        if (['onblur', 'onfocus', 'onvisibilitychange'].includes(attrName)) {
+          const element = mutation.target;
+          const attrValue = element.getAttribute(attrName);
+          if (attrValue !== null) {
+            console.log(`[Page Visibility API Disabler] Removed inline ${attrName} attribute from element`);
+            element.removeAttribute(attrName);
+          }
+        }
+      }
+    });
+  });
+  
+  // Start observing when DOM is ready
+  if (document.documentElement) {
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['onblur', 'onfocus', 'onvisibilitychange'],
+      subtree: true
+    });
+  } else {
+    // If documentElement doesn't exist yet, wait for it
+    document.addEventListener('DOMContentLoaded', function() {
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['onblur', 'onfocus', 'onvisibilitychange'],
+        subtree: true
+      });
+    });
+  }
+  
+  // Zone.js detection and handling (for Angular applications)
+  // Zone.js patches native event methods, so we need to override those too
+  if (window.Zone && window.Zone.__symbol__) {
+    const zoneSymbol = window.Zone.__symbol__;
+    
+    // Try to override Zone's patched addEventListener
+    const addEventListenerSymbol = zoneSymbol('addEventListener');
+    if (EventTarget.prototype[addEventListenerSymbol]) {
+      const originalZoneAddEventListener = EventTarget.prototype[addEventListenerSymbol];
+      EventTarget.prototype[addEventListenerSymbol] = function(type, listener, options) {
+        if (BLOCKED_EVENT_TYPES.includes(type)) {
+          console.log(`[Page Visibility API Disabler] Blocked Zone.js ${type} event listener`);
+          return;
+        }
+        return originalZoneAddEventListener.call(this, type, listener, options);
+      };
+      console.log('[Page Visibility API Disabler] Zone.js addEventListener patched');
+    }
+    
+    // Try to override Zone's patched removeEventListener
+    const removeEventListenerSymbol = zoneSymbol('removeEventListener');
+    if (EventTarget.prototype[removeEventListenerSymbol]) {
+      const originalZoneRemoveEventListener = EventTarget.prototype[removeEventListenerSymbol];
+      EventTarget.prototype[removeEventListenerSymbol] = function(type, listener, options) {
+        if (BLOCKED_EVENT_TYPES.includes(type)) {
+          return;
+        }
+        return originalZoneRemoveEventListener.call(this, type, listener, options);
+      };
+      console.log('[Page Visibility API Disabler] Zone.js removeEventListener patched');
+    }
+  }
+  
   // Override jQuery.event.special if jQuery is loaded
   // This needs to be done after jQuery loads, so we use a timer to check
   // Note: This runs early at document_start, so jQuery may not be loaded yet

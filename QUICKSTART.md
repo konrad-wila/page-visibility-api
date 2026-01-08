@@ -32,6 +32,36 @@ document.visibilityState
 document.hasFocus()
 ```
 
+## 🛡️ Bypass Prevention Tests
+
+The extension blocks **ALL** known bypass methods:
+
+```javascript
+// ❌ BYPASS 1: Property setter - BLOCKED
+window.onblur = () => console.log('BYPASS 1');
+// Returns null, handler never fires
+
+// ❌ BYPASS 2: HTML attribute - BLOCKED (removed immediately)
+document.body.setAttribute('onblur', 'console.log("BYPASS 2")');
+// Attribute is removed by MutationObserver
+
+// ❌ BYPASS 3: Synthetic event - BLOCKED
+document.dispatchEvent(new Event('visibilitychange'));
+// Event is intercepted and never fires
+
+// ❌ BYPASS 4: Event constructor - BLOCKED
+const e = new Event('blur');
+window.dispatchEvent(e);
+// Event type is changed to 'dummy-blocked-event'
+
+// ❌ BYPASS 5: Element property - BLOCKED
+const div = document.createElement('div');
+div.onblur = () => console.log('BYPASS 5');
+// Returns null, handler never fires
+
+// ✅ All bypass attempts are blocked!
+```
+
 ## 📝 Test Procedure
 
 1. Open `test.html` or `demo.html` in Chrome
@@ -62,18 +92,24 @@ document.hasFocus()
 
 ```
 page-visibility-api/
-├── manifest.json      # Extension config (required)
-├── content.js         # Content script that injects override (required)
-├── inject.js          # Injected script with API overrides (required)
-├── icons/            # Extension icons (required)
+├── manifest.json           # Extension config (required)
+├── content.js              # Content script that injects override (required)
+├── inject.js               # Injected script with API overrides (required)
+├── icons/                  # Extension icons (required)
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-├── README.md         # Full documentation
-├── INSTALL.md        # Installation guide
-├── test.html         # Simple test page
-├── demo.html         # Advanced demo with animations
-└── LICENSE           # MIT License
+├── README.md               # Full documentation
+├── INSTALL.md              # Installation guide
+├── test.html               # Simple test page
+├── test-bypasses.html      # Comprehensive bypass test suite
+├── test-onblur-onfocus.html # Test property blocking
+├── test-focusin-focusout.html # Test focusin/focusout blocking
+├── test-manual.html        # Manual testing page
+├── test-pre-existing-listeners.html # Test pre-existing listeners
+├── jquery-test.html        # jQuery compatibility test
+├── demo.html               # Advanced demo with animations
+└── LICENSE                 # MIT License
 ```
 
 ## 🔒 Security & Privacy
@@ -94,9 +130,9 @@ page-visibility-api/
 
 ## 🐛 Known Limitations
 
-- `document.hasFocus()` still works correctly (this is intentional)
-- Some websites may use other detection methods (mouse movement, keyboard events)
-- Extension must be loaded before page to work properly
+- Extension must be loaded before page scripts to work properly (this is automatic with `document_start`)
+- Some websites may use other detection methods not related to visibility API (mouse movement, keyboard events, network timing)
+- If a page creates iframes dynamically, the blocking applies to those as well (runs with `all_frames: true`)
 
 ## 📚 Learn More
 
