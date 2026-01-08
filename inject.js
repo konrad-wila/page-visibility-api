@@ -51,6 +51,22 @@
     return originalRemoveEventListener.call(this, type, listener, options);
   };
   
+  // Override EventTarget.prototype.dispatchEvent to block event dispatch at the deepest level
+  // This prevents both new AND existing event listeners from firing
+  const originalDispatchEvent = EventTarget.prototype.dispatchEvent;
+  
+  EventTarget.prototype.dispatchEvent = function(event) {
+    const blockedTypes = ['blur', 'focus', 'focusin', 'focusout', 'visibilitychange'];
+    
+    if (blockedTypes.includes(event.type)) {
+      console.log(`[Page Visibility API Disabler] Blocked ${event.type} event dispatch`);
+      // Return true to indicate event was "handled" without errors
+      return true;
+    }
+    
+    return originalDispatchEvent.call(this, event);
+  };
+  
   // Override window.onblur and window.onfocus properties to prevent property-based event handlers
   // We store the handlers but never actually call them, effectively blocking them
   let onblurHandler = null;
