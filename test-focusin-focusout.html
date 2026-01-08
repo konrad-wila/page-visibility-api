@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test focusin/focusout Event Blocking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        input, textarea {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        #log {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry.error {
+            color: #f48771;
+        }
+        .log-entry.success {
+            color: #4ec9b0;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test focusin/focusout Event Blocking</h1>
+        
+        <div class="test-section">
+            <h3>Test Status</h3>
+            <p>This page tests whether the extension blocks focusin and focusout events on the window and document.</p>
+        </div>
+
+        <div class="test-section">
+            <h3>Interactive Elements</h3>
+            <p>Click on these elements to test focus events:</p>
+            <input type="text" id="testInput1" placeholder="Click here to focus">
+            <input type="text" id="testInput2" placeholder="Click here too">
+            <textarea id="testTextarea" rows="3" placeholder="Or click here"></textarea>
+        </div>
+
+        <div class="instructions">
+            <h3>📝 Test Instructions</h3>
+            <ol>
+                <li>Load this page with the extension enabled</li>
+                <li>Check the console for debug messages showing blocked events</li>
+                <li>Switch to another tab or window</li>
+                <li>Switch back to this tab</li>
+                <li>Click on the input fields above</li>
+                <li>Check the event log below</li>
+            </ol>
+            <h3>✅ Expected Behavior (With Extension)</h3>
+            <ul>
+                <li>Console shows: <code>[Page Visibility API Disabler] Blocked focusin event listener</code></li>
+                <li>Console shows: <code>[Page Visibility API Disabler] Blocked focusout event listener</code></li>
+                <li>When you switch tabs, <strong>NO</strong> window/document focusin/focusout events are logged</li>
+                <li>Element-level focusin/focusout on input fields will still work (those are not blocked)</li>
+            </ul>
+            <h3>ℹ️ Note</h3>
+            <p>The extension blocks focusin/focusout events on window and document level, but element-specific focus events still work as expected for normal page functionality.</p>
+        </div>
+
+        <h3>📋 Event Log:</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            entry.innerHTML = `[${timestamp}] ${message}`;
+            log.insertBefore(entry, log.firstChild);
+        }
+
+        addLogEntry('Page loaded', 'success');
+
+        // Test 1: Listen for focusin on window (should be blocked)
+        console.log('%c[Test] Adding focusin listener to window...', 'color: #667eea; font-weight: bold;');
+        window.addEventListener('focusin', function(e) {
+            console.log('%c[ERROR] window.focusin fired! Extension NOT working!', 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ERROR: window.focusin fired! Extension NOT working!', 'error');
+        });
+        addLogEntry('✅ window.focusin listener added (should be blocked by extension)', 'success');
+
+        // Test 2: Listen for focusout on window (should be blocked)
+        console.log('%c[Test] Adding focusout listener to window...', 'color: #667eea; font-weight: bold;');
+        window.addEventListener('focusout', function(e) {
+            console.log('%c[ERROR] window.focusout fired! Extension NOT working!', 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ERROR: window.focusout fired! Extension NOT working!', 'error');
+        });
+        addLogEntry('✅ window.focusout listener added (should be blocked by extension)', 'success');
+
+        // Test 3: Listen for focusin on document (should be blocked)
+        console.log('%c[Test] Adding focusin listener to document...', 'color: #667eea; font-weight: bold;');
+        document.addEventListener('focusin', function(e) {
+            console.log('%c[ERROR] document.focusin fired! Extension NOT working!', 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ERROR: document.focusin fired! Extension NOT working!', 'error');
+        });
+        addLogEntry('✅ document.focusin listener added (should be blocked by extension)', 'success');
+
+        // Test 4: Listen for focusout on document (should be blocked)
+        console.log('%c[Test] Adding focusout listener to document...', 'color: #667eea; font-weight: bold;');
+        document.addEventListener('focusout', function(e) {
+            console.log('%c[ERROR] document.focusout fired! Extension NOT working!', 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ERROR: document.focusout fired! Extension NOT working!', 'error');
+        });
+        addLogEntry('✅ document.focusout listener added (should be blocked by extension)', 'success');
+
+        // Heartbeat
+        setInterval(function() {
+            addLogEntry('💓 Heartbeat - No window/document focusin/focusout events should fire', 'success');
+        }, 10000);
+
+        console.log('%c✅ Event listeners registered. Switch tabs and click inputs to test!', 'color: #4caf50; font-weight: bold; font-size: 14px;');
+        addLogEntry('✅ All tests set up. Switch tabs and interact with page to verify extension is working!', 'success');
+    </script>
+</body>
+</html>

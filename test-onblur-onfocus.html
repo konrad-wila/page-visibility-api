@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test window.onblur/onfocus Property Blocking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        #log {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry.error {
+            color: #f48771;
+        }
+        .log-entry.success {
+            color: #4ec9b0;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test window.onblur/onfocus Property Blocking</h1>
+        
+        <div class="test-section">
+            <h3>Test Status</h3>
+            <p>This page tests whether the extension blocks window.onblur and window.onfocus property assignments.</p>
+        </div>
+
+        <div class="instructions">
+            <h3>📝 Test Instructions</h3>
+            <ol>
+                <li>Load this page with the extension enabled</li>
+                <li>Check the console for debug messages showing blocked property assignments</li>
+                <li>Switch to another tab or window</li>
+                <li>Switch back to this tab</li>
+                <li>Check the event log below - it should remain empty if the extension is working</li>
+            </ol>
+            <h3>✅ Expected Behavior (With Extension)</h3>
+            <ul>
+                <li>Console shows: <code>[Page Visibility API Disabler] Blocked window.onblur property assignment</code></li>
+                <li>Console shows: <code>[Page Visibility API Disabler] Blocked window.onfocus property assignment</code></li>
+                <li>When you switch tabs, <strong>NO</strong> blur/focus events are logged below</li>
+            </ul>
+        </div>
+
+        <h3>📋 Event Log:</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            entry.innerHTML = `[${timestamp}] ${message}`;
+            log.insertBefore(entry, log.firstChild);
+        }
+
+        addLogEntry('Page loaded', 'success');
+
+        // Test 1: Try to set window.onblur using property assignment
+        console.log('%c[Test] Setting window.onblur property...', 'color: #667eea; font-weight: bold;');
+        window.onblur = function() {
+            console.log('%c[ERROR] window.onblur fired! Extension NOT working!', 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ERROR: window.onblur fired! Extension NOT working!', 'error');
+        };
+        addLogEntry('✅ window.onblur property set (should be blocked by extension)', 'success');
+
+        // Test 2: Try to set window.onfocus using property assignment
+        console.log('%c[Test] Setting window.onfocus property...', 'color: #667eea; font-weight: bold;');
+        window.onfocus = function() {
+            console.log('%c[ERROR] window.onfocus fired! Extension NOT working!', 'color: #f44336; font-weight: bold;');
+            addLogEntry('🚨 ERROR: window.onfocus fired! Extension NOT working!', 'error');
+        };
+        addLogEntry('✅ window.onfocus property set (should be blocked by extension)', 'success');
+
+        // Test 3: Check if we can read back the property (should return null or the blocked handler)
+        console.log('%c[Test] Reading window.onblur:', window.onblur, 'color: #667eea;');
+        console.log('%c[Test] Reading window.onfocus:', window.onfocus, 'color: #667eea;');
+
+        // Heartbeat
+        setInterval(function() {
+            addLogEntry('💓 Heartbeat - No events should fire when switching tabs', 'success');
+        }, 10000);
+
+        console.log('%c✅ Property assignments completed. Switch tabs to test!', 'color: #4caf50; font-weight: bold; font-size: 14px;');
+        addLogEntry('✅ All tests set up. Switch tabs to verify extension is blocking events!', 'success');
+    </script>
+</body>
+</html>

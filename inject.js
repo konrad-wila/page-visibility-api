@@ -31,11 +31,11 @@
     return true;
   };
   
-  // Override EventTarget.prototype to block visibilitychange, blur, and focus events
+  // Override EventTarget.prototype to block visibilitychange, blur, focus, focusin, and focusout events
   // This catches ALL event registrations, including those from jQuery and other libraries
   // that cache the native addEventListener method
   EventTarget.prototype.addEventListener = function(type, listener, options) {
-    if (type === 'visibilitychange' || type === 'blur' || type === 'focus') {
+    if (type === 'visibilitychange' || type === 'blur' || type === 'focus' || type === 'focusin' || type === 'focusout') {
       // Log and silently ignore these event listeners
       console.log(`[Page Visibility API Disabler] Blocked ${type} event listener`);
       return;
@@ -44,12 +44,96 @@
   };
   
   EventTarget.prototype.removeEventListener = function(type, listener, options) {
-    if (type === 'visibilitychange' || type === 'blur' || type === 'focus') {
+    if (type === 'visibilitychange' || type === 'blur' || type === 'focus' || type === 'focusin' || type === 'focusout') {
       // Silently ignore removal of these event listeners
       return;
     }
     return originalRemoveEventListener.call(this, type, listener, options);
   };
+  
+  // Override window.onblur and window.onfocus properties to prevent property-based event handlers
+  // Store references to check if they were set before our override
+  let onblurHandler = null;
+  let onfocusHandler = null;
+  
+  Object.defineProperty(window, 'onblur', {
+    get: function() {
+      return onblurHandler;
+    },
+    set: function(handler) {
+      console.log('[Page Visibility API Disabler] Blocked window.onblur property assignment');
+      // Store it but don't actually set it - effectively blocks the handler
+      onblurHandler = handler;
+    },
+    configurable: true
+  });
+  
+  Object.defineProperty(window, 'onfocus', {
+    get: function() {
+      return onfocusHandler;
+    },
+    set: function(handler) {
+      console.log('[Page Visibility API Disabler] Blocked window.onfocus property assignment');
+      // Store it but don't actually set it - effectively blocks the handler
+      onfocusHandler = handler;
+    },
+    configurable: true
+  });
+  
+  // Override jQuery.event.special if jQuery is loaded
+  // This needs to be done after jQuery loads, so we use a timer to check
+  // Note: This runs early at document_start, so jQuery may not be loaded yet
+  function overrideJQuerySpecialEvents() {
+    if (typeof jQuery !== 'undefined' && jQuery.event && jQuery.event.special) {
+      // Override jQuery's special focus event handler
+      if (jQuery.event.special.focus) {
+        const originalFocusSetup = jQuery.event.special.focus.setup;
+        jQuery.event.special.focus = {
+          setup: function() {
+            console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.focus setup');
+            // Return false to prevent jQuery from setting up the event
+            return false;
+          },
+          teardown: function() {
+            return false;
+          }
+        };
+      }
+      
+      // Override jQuery's special blur event handler
+      if (jQuery.event.special.blur) {
+        const originalBlurSetup = jQuery.event.special.blur.setup;
+        jQuery.event.special.blur = {
+          setup: function() {
+            console.log('[Page Visibility API Disabler] Blocked jQuery.event.special.blur setup');
+            // Return false to prevent jQuery from setting up the event
+            return false;
+          },
+          teardown: function() {
+            return false;
+          }
+        };
+      }
+      
+      console.log('[Page Visibility API Disabler] jQuery special events overridden');
+    }
+  }
+  
+  // Try to override jQuery special events immediately
+  overrideJQuerySpecialEvents();
+  
+  // Also check periodically for jQuery loading (for up to 5 seconds)
+  let jqueryCheckAttempts = 0;
+  const jqueryCheckInterval = setInterval(function() {
+    jqueryCheckAttempts++;
+    if (typeof jQuery !== 'undefined') {
+      overrideJQuerySpecialEvents();
+      clearInterval(jqueryCheckInterval);
+    } else if (jqueryCheckAttempts >= 50) {
+      // Stop checking after 5 seconds (50 * 100ms)
+      clearInterval(jqueryCheckInterval);
+    }
+  }, 100);
   
   console.log('[Page Visibility API Disabler] Extension active - all visibility/focus detection disabled.');
 })();
