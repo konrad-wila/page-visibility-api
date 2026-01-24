@@ -340,5 +340,86 @@
         }
     }, 100);
 
+    // Override Window Management API (Multi-Screen Window Placement API)
+    // This API allows websites to detect multiple monitors and manage windows across them
+    // We override it to always return that there is only one monitor
+    
+    // Only override if the browser supports these APIs to preserve feature detection
+    // This prevents breaking sites that check for API availability before using it
+
+    // Override window.screen.isExtended to always return false (indicating single monitor)
+    if ('isExtended' in window.screen) {
+        Object.defineProperty(window.screen, 'isExtended', {
+            get: function() {
+                return false;
+            },
+            configurable: true
+        });
+    }
+
+    // Override window.getScreenDetails() to return a mock ScreenDetails object with single monitor
+    // Only override if the function already exists to maintain proper feature detection
+    if (typeof window.getScreenDetails === 'function') {
+        const originalGetScreenDetails = window.getScreenDetails;
+        
+        window.getScreenDetails = async function() {
+            console.log('[Page Visibility API Disabler] Blocked window.getScreenDetails() - returning single monitor');
+            
+            // Try to get real screen details first, then collapse to single screen
+            let realDetails;
+            try {
+                realDetails = await originalGetScreenDetails.call(window);
+            } catch (e) {
+                // If permission denied or error, we'll use fallback values
+                realDetails = null;
+            }
+            
+            // Use real screen data if available, otherwise fall back to window.screen
+            const sourceScreen = (realDetails && realDetails.screens && realDetails.screens.length > 0) 
+                ? realDetails.screens[0] 
+                : window.screen;
+            
+            // Create a mock ScreenDetailed object for the primary screen
+            // Using real values when possible to avoid fingerprinting
+            const mockScreen = {
+                availWidth: sourceScreen.availWidth,
+                availHeight: sourceScreen.availHeight,
+                width: sourceScreen.width,
+                height: sourceScreen.height,
+                colorDepth: sourceScreen.colorDepth,
+                pixelDepth: sourceScreen.pixelDepth,
+                availLeft: sourceScreen.availLeft || 0,
+                availTop: sourceScreen.availTop || 0,
+                left: 0,
+                top: 0,
+                isPrimary: true,
+                // Use real value if available, otherwise default to true for primary monitor
+                isInternal: sourceScreen.isInternal !== undefined ? sourceScreen.isInternal : true,
+                devicePixelRatio: sourceScreen.devicePixelRatio || window.devicePixelRatio || 1,
+                // Use real label if available, otherwise generic label
+                label: sourceScreen.label || '',
+                // EventTarget methods (ScreenDetailed extends EventTarget)
+                addEventListener: function() {},
+                removeEventListener: function() {},
+                dispatchEvent: function() { return true; }
+            };
+
+            // Create mock ScreenDetails object
+            const mockScreenDetails = {
+                screens: [mockScreen],
+                currentScreen: mockScreen,
+                // EventTarget methods (ScreenDetails extends EventTarget)
+                addEventListener: function() {},
+                removeEventListener: function() {},
+                dispatchEvent: function() { return true; },
+                // screenschange event handling (we never fire it)
+                onscreenschange: null
+            };
+
+            // Return a resolved promise with the mock data
+            return Promise.resolve(mockScreenDetails);
+        };
+    }
+
     console.log("[Page Visibility API Disabler] Extension active - all visibility/focus detection disabled.");
 })();

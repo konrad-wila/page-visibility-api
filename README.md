@@ -1,6 +1,6 @@
 # Page Visibility API Disabler
 
-A Chrome extension that disables the Page Visibility API, preventing websites from detecting when their tab becomes hidden, unfocused, minimized, or covered by another window.
+A Chrome extension that disables the Page Visibility API and Window Management API, preventing websites from detecting when their tab becomes hidden, unfocused, minimized, or covered by another window, and from detecting multiple monitors.
 
 ## What is the Page Visibility API?
 
@@ -20,27 +20,35 @@ This extension completely disables the Page Visibility API and window focus dete
 1. **Overriding `document.hidden`**: Always returns `false`, making the page appear never hidden
 2. **Overriding `document.visibilityState`**: Always returns `"visible"`, indicating the page is always visible
 3. **Overriding `document.hasFocus()`**: Always returns `true`, making the document appear always focused
+4. **Overriding `window.screen.isExtended`**: Always returns `false`, making it appear as if only one monitor is present
+5. **Overriding `window.getScreenDetails()`**: Returns a mock object with only one screen, preventing multi-screen detection
 
 ### Layer 1: EventTarget.prototype Blocking
-4. **Blocking `addEventListener()`**: Intercepts all calls to register event listeners for blocked events (visibilitychange, blur, focus, focusin, focusout)
-5. **Blocking `removeEventListener()`**: Silently ignores removal attempts for blocked events
-6. **Blocking `dispatchEvent()`**: Prevents synthetic event dispatching for blocked event types
+6. **Blocking `addEventListener()`**: Intercepts all calls to register event listeners for blocked events (visibilitychange, blur, focus, focusin, focusout)
+7. **Blocking `removeEventListener()`**: Silently ignores removal attempts for blocked events
+8. **Blocking `dispatchEvent()`**: Prevents synthetic event dispatching for blocked event types
 
 ### Layer 2: Property Setter Blocking
-7. **Blocking `window.onblur` and `window.onfocus`**: Property assignments are silently ignored, getters return null
-8. **Blocking `document.onvisibilitychange`**: Property assignments are silently ignored, getter returns null
-9. **Blocking `element.onblur` and `element.onfocus`**: Inline property handlers on all HTML elements are blocked via HTMLElement.prototype
+9. **Blocking `window.onblur` and `window.onfocus`**: Property assignments are silently ignored, getters return null
+10. **Blocking `document.onvisibilitychange`**: Property assignments are silently ignored, getter returns null
+11. **Blocking `element.onblur` and `element.onfocus`**: Inline property handlers on all HTML elements are blocked via HTMLElement.prototype
 
 ### Layer 3: Synthetic Event Prevention
-10. **Event constructor wrapper**: Intercepts `new Event('blur')` and similar, replacing blocked event types with dummy events
+12. **Event constructor wrapper**: Intercepts `new Event('blur')` and similar, replacing blocked event types with dummy events
 
 ### Layer 4: HTML Attribute Protection
-11. **MutationObserver monitoring**: Watches for and immediately removes inline HTML attribute handlers like `<div onblur="...">`
+13. **MutationObserver monitoring**: Watches for and immediately removes inline HTML attribute handlers like `<div onblur="...">`
 
 ### Layer 5: Framework Compatibility
-12. **Zone.js handling**: Detects and patches Angular's Zone.js event system when present
-13. **jQuery special events**: Overrides jQuery's special focus/blur event handling when jQuery is loaded
-14. **React/Vue compatibility**: Works automatically via EventTarget overrides (these frameworks use addEventListener internally)
+14. **Zone.js handling**: Detects and patches Angular's Zone.js event system when present
+15. **jQuery special events**: Overrides jQuery's special focus/blur event handling when jQuery is loaded
+16. **React/Vue compatibility**: Works automatically via EventTarget overrides (these frameworks use addEventListener internally)
+
+### Layer 6: CSP Bypass
+17. **Content Security Policy bypass**: Injects a separate JS file (`inject.js`) to bypass Content Security Policy restrictions and run in page context
+
+### Layer 7: Window Management API Override
+18. **Multi-screen detection blocking**: Overrides the Window Management API to always report a single monitor, preventing websites from detecting multiple displays
 
 ## Installation
 
@@ -70,7 +78,8 @@ To verify it's working:
 1. Open the browser console (F12) on any webpage
 2. Type `document.hidden` - it should always return `false`
 3. Type `document.visibilityState` - it should always return `"visible"`
-4. Switch to another tab and back - the values remain unchanged
+4. Type `window.screen.isExtended` - it should always return `false`
+5. Switch to another tab and back - the values remain unchanged
 
 ## Technical Details
 
@@ -78,7 +87,7 @@ The extension uses a content script that runs at `document_start` to inject code
 
 ### Multi-Layered Protection Architecture
 
-The extension implements six layers of protection to ensure comprehensive blocking:
+The extension implements seven layers of protection to ensure comprehensive blocking:
 
 **Layer 1: Core EventTarget Overrides**
 - Intercepts `EventTarget.prototype.addEventListener` to block registration
@@ -111,6 +120,11 @@ The extension implements six layers of protection to ensure comprehensive blocki
 - Injects a separate JS file (`inject.js`) to bypass Content Security Policy restrictions
 - Runs in page context with full access to modify prototypes
 
+**Layer 7: Window Management API Override**
+- Overrides `window.screen.isExtended` to always return `false`
+- Overrides `window.getScreenDetails()` to return a mock single-screen configuration
+- Prevents websites from detecting multiple monitors or managing windows across screens
+
 ### Coverage Matrix
 
 | Method | Status |
@@ -124,6 +138,8 @@ The extension implements six layers of protection to ensure comprehensive blocki
 | jQuery cached methods | ✅ Blocked |
 | React/Vue events | ✅ Blocked |
 | Angular/Zone.js | ✅ Blocked |
+| `window.screen.isExtended` | ✅ Overridden (always false) |
+| `window.getScreenDetails()` | ✅ Overridden (single screen) |
 
 The script:
 - Runs on all URLs (`<all_urls>`)
