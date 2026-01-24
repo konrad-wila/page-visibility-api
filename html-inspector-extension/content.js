@@ -2,54 +2,11 @@
 let isMonitoring = false;
 let selectedElement = null;
 let mutationObserver = null;
-let highlightOverlay = null;
 let lastUpdateTime = 0;
 const UPDATE_THROTTLE = 500; // ms
 
 // Initialize content script
 console.log('HTML Inspector: Content script loaded');
-
-// Create highlight overlay
-function createHighlightOverlay() {
-  if (highlightOverlay) return;
-  
-  highlightOverlay = document.createElement('div');
-  highlightOverlay.id = 'html-inspector-highlight';
-  highlightOverlay.style.cssText = `
-    position: absolute;
-    border: 3px solid #667eea;
-    background: rgba(102, 126, 234, 0.1);
-    pointer-events: none;
-    z-index: 999999;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 0 1px rgba(102, 126, 234, 0.3);
-  `;
-  document.body.appendChild(highlightOverlay);
-}
-
-// Remove highlight overlay
-function removeHighlightOverlay() {
-  if (highlightOverlay && highlightOverlay.parentNode) {
-    highlightOverlay.parentNode.removeChild(highlightOverlay);
-    highlightOverlay = null;
-  }
-}
-
-// Highlight element
-function highlightElement(element) {
-  if (!element) {
-    removeHighlightOverlay();
-    return;
-  }
-  
-  createHighlightOverlay();
-  
-  const rect = element.getBoundingClientRect();
-  highlightOverlay.style.top = (window.scrollY + rect.top) + 'px';
-  highlightOverlay.style.left = (window.scrollX + rect.left) + 'px';
-  highlightOverlay.style.width = rect.width + 'px';
-  highlightOverlay.style.height = rect.height + 'px';
-}
 
 // Get element path
 function getElementPath(element) {
@@ -86,7 +43,6 @@ function handleElementClick(event) {
     event.stopPropagation();
     
     selectedElement = event.target;
-    highlightElement(selectedElement);
     
     const elementData = {
       html: selectedElement.outerHTML,
@@ -113,7 +69,6 @@ function getPageHTML() {
 function getSelectedElementData() {
   if (!selectedElement || !document.body.contains(selectedElement)) {
     selectedElement = null;
-    removeHighlightOverlay();
     return null;
   }
   
@@ -204,18 +159,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Set up element selection
 document.addEventListener('click', handleElementClick, true);
-
-// Update highlight on scroll/resize
-window.addEventListener('scroll', () => {
-  if (selectedElement) {
-    highlightElement(selectedElement);
-  }
-}, { passive: true });
-
-window.addEventListener('resize', () => {
-  if (selectedElement) {
-    highlightElement(selectedElement);
-  }
-}, { passive: true });
 
 console.log('HTML Inspector: Ready for element selection (Alt+Click)');
