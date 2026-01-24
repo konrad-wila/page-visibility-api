@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Window Management API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .status-box {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+        .property {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #1976d2;
+            font-family: monospace;
+            font-size: 18px;
+        }
+        #log {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .instructions ul {
+            margin: 10px 0;
+        }
+        .button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #0b7dda;
+        }
+        .screen-info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Window Management API Test</h1>
+        
+        <div class="status-box">
+            <div class="property">
+                <span class="label">window.screen.isExtended:</span>
+                <span class="value" id="isExtendedValue">-</span>
+            </div>
+            <div class="property">
+                <span class="label">getScreenDetails() available:</span>
+                <span class="value" id="apiAvailable">-</span>
+            </div>
+        </div>
+
+        <button class="button" onclick="testScreenIsExtended()">Test screen.isExtended</button>
+        <button class="button" onclick="testGetScreenDetails()">Test getScreenDetails()</button>
+
+        <div class="instructions">
+            <h3>🧪 How to Test:</h3>
+            <ul>
+                <li><strong>Without the extension:</strong> If you have multiple monitors, <code>screen.isExtended</code> will be <code>true</code> and <code>getScreenDetails()</code> will return all your screens.</li>
+                <li><strong>With the extension:</strong> Even if you have multiple monitors, <code>screen.isExtended</code> will always be <code>false</code> and <code>getScreenDetails()</code> will return only one screen.</li>
+            </ul>
+            <p><strong>Expected with extension enabled:</strong></p>
+            <ul>
+                <li>window.screen.isExtended should always be <code>false</code></li>
+                <li>getScreenDetails().screens should return an array with exactly 1 screen</li>
+                <li>The single screen should be marked as primary (isPrimary: true)</li>
+            </ul>
+            <p><strong>Note:</strong> The Window Management API requires HTTPS or localhost and user permission in some browsers.</p>
+        </div>
+
+        <h3>📋 Test Results:</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const isExtendedValue = document.getElementById('isExtendedValue');
+        const apiAvailable = document.getElementById('apiAvailable');
+        const log = document.getElementById('log');
+
+        function addLogEntry(message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString() + '.' + now.getMilliseconds();
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 50 entries
+            while (log.children.length > 50) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function updateInitialStatus() {
+            // Check if screen.isExtended exists
+            if ('isExtended' in window.screen) {
+                isExtendedValue.textContent = String(window.screen.isExtended);
+            } else {
+                isExtendedValue.textContent = 'Not supported';
+            }
+
+            // Check if getScreenDetails exists
+            if (typeof window.getScreenDetails === 'function') {
+                apiAvailable.textContent = 'Yes';
+            } else {
+                apiAvailable.textContent = 'No (API not supported in this browser)';
+            }
+        }
+
+        function testScreenIsExtended() {
+            addLogEntry('<strong>Testing screen.isExtended:</strong>');
+            
+            if ('isExtended' in window.screen) {
+                const isExtended = window.screen.isExtended;
+                addLogEntry(`✅ screen.isExtended = <strong>${isExtended}</strong>`);
+                
+                if (isExtended === false) {
+                    addLogEntry('✅ <span style="color: green;">PASS: Reports single monitor (isExtended is false)</span>');
+                } else {
+                    addLogEntry('❌ <span style="color: red;">FAIL: Reports multiple monitors (isExtended is true)</span>');
+                }
+            } else {
+                addLogEntry('⚠️ screen.isExtended property not supported in this browser');
+            }
+        }
+
+        async function testGetScreenDetails() {
+            addLogEntry('<strong>Testing getScreenDetails():</strong>');
+            
+            if (typeof window.getScreenDetails !== 'function') {
+                addLogEntry('⚠️ getScreenDetails() not supported in this browser');
+                addLogEntry('ℹ️ This API requires Chrome 100+ with the Multi-Screen Window Placement API enabled');
+                return;
+            }
+
+            try {
+                addLogEntry('Calling getScreenDetails()...');
+                const screenDetails = await window.getScreenDetails();
+                
+                addLogEntry(`✅ getScreenDetails() returned successfully`);
+                addLogEntry(`📊 Number of screens: <strong>${screenDetails.screens.length}</strong>`);
+                
+                if (screenDetails.screens.length === 1) {
+                    addLogEntry('✅ <span style="color: green;">PASS: Reports only one screen</span>');
+                } else {
+                    addLogEntry(`❌ <span style="color: red;">FAIL: Reports ${screenDetails.screens.length} screens</span>`);
+                }
+
+                // Display details about each screen
+                screenDetails.screens.forEach((screen, index) => {
+                    const screenInfo = `
+                        <div class="screen-info">
+                            <strong>Screen ${index + 1}:</strong><br>
+                            • Resolution: ${screen.width} x ${screen.height}<br>
+                            • Available: ${screen.availWidth} x ${screen.availHeight}<br>
+                            • Position: (${screen.left}, ${screen.top})<br>
+                            • Primary: ${screen.isPrimary}<br>
+                            • Internal: ${screen.isInternal}<br>
+                            • Label: ${screen.label || 'N/A'}<br>
+                            • Device Pixel Ratio: ${screen.devicePixelRatio}
+                        </div>
+                    `;
+                    addLogEntry(screenInfo);
+                });
+
+                // Check current screen
+                if (screenDetails.currentScreen) {
+                    addLogEntry(`ℹ️ Current screen is primary: <strong>${screenDetails.currentScreen.isPrimary}</strong>`);
+                }
+
+            } catch (error) {
+                addLogEntry(`❌ Error calling getScreenDetails(): ${error.message}`);
+                if (error.name === 'NotAllowedError') {
+                    addLogEntry('⚠️ Permission denied. You may need to grant permission for multi-screen API.');
+                }
+            }
+        }
+
+        // Initial status
+        updateInitialStatus();
+        addLogEntry('Page loaded - ready for testing');
+        addLogEntry('Click the buttons above to test Window Management API');
+    </script>
+</body>
+</html>

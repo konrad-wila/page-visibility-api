@@ -340,5 +340,61 @@
         }
     }, 100);
 
+    // Override Window Management API (Multi-Screen Window Placement API)
+    // This API allows websites to detect multiple monitors and manage windows across them
+    // We override it to always return that there is only one monitor
+
+    // Override window.screen.isExtended to always return false (indicating single monitor)
+    Object.defineProperty(window.screen, 'isExtended', {
+        get: function() {
+            return false;
+        },
+        configurable: true
+    });
+
+    // Override window.getScreenDetails() to return a mock ScreenDetails object with single monitor
+    if (window.getScreenDetails) {
+        window.getScreenDetails = async function() {
+            console.log('[Page Visibility API Disabler] Blocked window.getScreenDetails() - returning single monitor');
+            
+            // Create a mock ScreenDetailed object for the primary screen
+            const mockScreen = {
+                availWidth: window.screen.availWidth,
+                availHeight: window.screen.availHeight,
+                width: window.screen.width,
+                height: window.screen.height,
+                colorDepth: window.screen.colorDepth,
+                pixelDepth: window.screen.pixelDepth,
+                availLeft: window.screen.availLeft || 0,
+                availTop: window.screen.availTop || 0,
+                left: 0,
+                top: 0,
+                isPrimary: true,
+                isInternal: true,
+                devicePixelRatio: window.devicePixelRatio || 1,
+                label: 'Primary Monitor',
+                // EventTarget methods (ScreenDetailed extends EventTarget)
+                addEventListener: function() {},
+                removeEventListener: function() {},
+                dispatchEvent: function() { return true; }
+            };
+
+            // Create mock ScreenDetails object
+            const mockScreenDetails = {
+                screens: [mockScreen],
+                currentScreen: mockScreen,
+                // EventTarget methods (ScreenDetails extends EventTarget)
+                addEventListener: function() {},
+                removeEventListener: function() {},
+                dispatchEvent: function() { return true; },
+                // screenschange event handling (we never fire it)
+                onscreenschange: null
+            };
+
+            // Return a resolved promise with the mock data
+            return Promise.resolve(mockScreenDetails);
+        };
+    }
+
     console.log("[Page Visibility API Disabler] Extension active - all visibility/focus detection disabled.");
 })();
