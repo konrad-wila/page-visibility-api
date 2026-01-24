@@ -44,8 +44,11 @@ This extension completely disables the Page Visibility API and window focus dete
 15. **jQuery special events**: Overrides jQuery's special focus/blur event handling when jQuery is loaded
 16. **React/Vue compatibility**: Works automatically via EventTarget overrides (these frameworks use addEventListener internally)
 
-### Layer 6: Window Management API Override
-17. **Multi-screen detection blocking**: Overrides the Window Management API to always report a single monitor, preventing websites from detecting multiple displays
+### Layer 6: CSP Bypass
+17. **Content Security Policy bypass**: Injects a separate JS file (`inject.js`) to bypass Content Security Policy restrictions and run in page context
+
+### Layer 7: Window Management API Override
+18. **Multi-screen detection blocking**: Overrides the Window Management API to always report a single monitor, preventing websites from detecting multiple displays
 
 ## Installation
 
