@@ -39,6 +39,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (tabIdParam) {
     // Use the tabId from URL parameter
     currentTabId = parseInt(tabIdParam, 10);
+    
+    // Validate the tab exists and is accessible
+    if (isNaN(currentTabId)) {
+      console.error('Invalid tabId parameter:', tabIdParam);
+      showNotification('Error: Invalid tab ID', 'error');
+      return;
+    }
+    
+    try {
+      await chrome.tabs.get(currentTabId);
+    } catch (err) {
+      console.error('Tab not found:', currentTabId, err);
+      showNotification('Error: Tab not found', 'error');
+      return;
+    }
   } else {
     // Get current active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

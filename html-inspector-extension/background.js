@@ -5,6 +5,18 @@ console.log('HTML Inspector: Background service worker started');
 // Track opened inspector windows
 const inspectorWindows = new Map(); // Map of tabId -> windowId
 
+// Global listener for window removal
+chrome.windows.onRemoved.addListener((windowId) => {
+  // Check if this was an inspector window
+  for (const [tabId, winId] of inspectorWindows.entries()) {
+    if (winId === windowId) {
+      inspectorWindows.delete(tabId);
+      console.log('Inspector window closed:', windowId);
+      break;
+    }
+  }
+});
+
 // Handle extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   console.log('HTML Inspector: Extension installed/updated', details.reason);
@@ -64,15 +76,6 @@ async function openInspectorWindow(tabId) {
     // Track the window
     inspectorWindows.set(tabId, window.id);
     console.log('Created inspector window:', window.id, 'for tab:', tabId);
-    
-    // Clean up when window is closed
-    chrome.windows.onRemoved.addListener(function windowClosedHandler(windowId) {
-      if (windowId === window.id) {
-        inspectorWindows.delete(tabId);
-        chrome.windows.onRemoved.removeListener(windowClosedHandler);
-        console.log('Inspector window closed:', windowId);
-      }
-    });
   } catch (error) {
     console.error('Error creating inspector window:', error);
     throw error;
@@ -89,7 +92,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   if (inspectorWindows.has(tabId)) {
     const windowId = inspectorWindows.get(tabId);
     chrome.windows.remove(windowId).catch(err => {
-      console.log('Could not close inspector window:', err);
+      console.error('Could not close inspector window:', err);
     });
     inspectorWindows.delete(tabId);
   }
