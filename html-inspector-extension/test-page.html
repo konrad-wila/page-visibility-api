@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Inspector Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        #dynamic-content {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+        .highlight-me {
+            padding: 15px;
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        code {
+            background: #282c34;
+            color: #61dafb;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 HTML Inspector Extension Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Instructions for Testing</h2>
+        <ol>
+            <li>Load the HTML Inspector extension in Chrome</li>
+            <li>Click the extension icon to open the popup</li>
+            <li>You should see this page's HTML in the "Full Page HTML" tab</li>
+            <li>Try <strong>Alt+Click</strong> on any element below to select it</li>
+            <li>Toggle "Auto-update" and click buttons to see live updates</li>
+            <li>Use the "Copy HTML" button to copy content to clipboard</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Element Selection Test</h2>
+        <p>Hold <code>Alt</code> and click on any of these elements:</p>
+        
+        <div class="highlight-me">
+            <strong>Test Element 1</strong>
+            <p>This is a selectable paragraph. Alt+Click me!</p>
+        </div>
+        
+        <div class="highlight-me">
+            <strong>Test Element 2</strong>
+            <p>This is another selectable paragraph with <span style="color: red;">nested span</span> elements.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Dynamic Content Test</h2>
+        <p>Test the auto-update feature by adding dynamic content:</p>
+        
+        <button onclick="addContent()">Add Content</button>
+        <button onclick="removeContent()">Remove Content</button>
+        <button onclick="modifyContent()">Modify Content</button>
+        
+        <div id="dynamic-content">
+            <p>Initial content. Enable auto-update and click buttons above to see changes.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Extension Features Checklist</h2>
+        <ul>
+            <li>✅ Full Page HTML display</li>
+            <li>✅ Selected Element display (Alt+Click)</li>
+            <li>✅ Element highlighting with blue border</li>
+            <li>✅ Element path display (DOM tree path)</li>
+            <li>✅ Auto-update toggle</li>
+            <li>✅ Manual refresh button</li>
+            <li>✅ Copy to clipboard</li>
+            <li>✅ Tab navigation</li>
+            <li>✅ Status bar with timestamp and element count</li>
+        </ul>
+    </div>
+
+    <script>
+        let contentCounter = 1;
+
+        function addContent() {
+            const container = document.getElementById('dynamic-content');
+            const newElement = document.createElement('p');
+            newElement.textContent = `Dynamically added content #${contentCounter++} - ${new Date().toLocaleTimeString()}`;
+            newElement.style.background = '#d4edda';
+            newElement.style.padding = '10px';
+            newElement.style.margin = '5px 0';
+            newElement.style.borderRadius = '4px';
+            container.appendChild(newElement);
+        }
+
+        function removeContent() {
+            const container = document.getElementById('dynamic-content');
+            const paragraphs = container.querySelectorAll('p:not(:first-child)');
+            if (paragraphs.length > 0) {
+                container.removeChild(paragraphs[paragraphs.length - 1]);
+            }
+        }
+
+        function modifyContent() {
+            const container = document.getElementById('dynamic-content');
+            const firstP = container.querySelector('p');
+            if (firstP) {
+                firstP.textContent = `Modified at ${new Date().toLocaleTimeString()}`;
+                firstP.style.background = '#f8d7da';
+                firstP.style.padding = '10px';
+                firstP.style.borderRadius = '4px';
+            }
+        }
+
+        console.log('Test page loaded. HTML Inspector extension ready for testing.');
+    </script>
+</body>
+</html>
