@@ -6,11 +6,13 @@ A Chrome extension that allows you to inspect, copy, and monitor page HTML and s
 
 - 🔍 **Full Page HTML Inspection** - View the complete HTML of any webpage
 - 🎯 **Element Selection** - Select specific elements on the page with Alt+Click
+- 🪟 **Popup Window** - Open inspector in a separate, resizable window
 - 🔄 **Auto-Update** - Continuously monitor DOM changes in real-time
 - 📋 **Copy to Clipboard** - Copy HTML with one click
 - 🎨 **Modern UI** - Clean, intuitive interface with tab navigation
 - ⚡ **Performance Optimized** - Throttled updates to prevent performance issues
 - 🌐 **Universal** - Works on all websites
+- 🕶️ **Discreet Operation** - No visible highlighting or page modifications
 
 ## Installation
 
@@ -51,9 +53,20 @@ Then follow the manual installation steps above.
 1. Open the inspector popup on any webpage
 2. **Alt+Click** on any element on the page
 3. The selected element will be:
-   - Highlighted with a blue border on the page
    - Displayed in the "Selected Element" tab
    - Shown with its DOM path (e.g., "html > body > div > section")
+4. The extension operates discreetly without any visible highlighting on the page
+
+### Opening in Separate Window
+
+1. Click the extension icon to open the popup
+2. Click the "Open in Window" button (🪟)
+3. The inspector will open in a separate popup window
+4. You can now:
+   - Move the window to a different monitor
+   - Resize the window as needed
+   - Keep it visible while working on other tabs
+   - All functionality remains the same as in popup mode
 
 ### Copying HTML
 
@@ -79,6 +92,7 @@ Click the "Refresh" button to manually update the HTML display at any time.
 
 ### Header
 - **Title** - Extension name and icon
+- **Open in Window Button** - Open inspector in a separate window
 - **Refresh Button** - Manually update HTML
 - **Copy Button** - Copy current HTML to clipboard
 - **Auto-update Toggle** - Enable/disable continuous monitoring
@@ -110,6 +124,7 @@ The extension requires the following permissions:
 - `activeTab` - Access current page content
 - `scripting` - Inject content scripts
 - `clipboardWrite` - Copy HTML to clipboard
+- `tabs` - Query and access tab information for window mode
 
 ### Architecture
 
@@ -209,6 +224,13 @@ MIT License - See LICENSE file in the repository root.
 For issues, questions, or feature requests, please open an issue on the GitHub repository.
 
 ## Changelog
+
+### Version 1.1.0 (Current)
+- Added popup window functionality - open inspector in separate window
+- Removed element highlighting for discreet operation
+- Added ability to move inspector to different monitors
+- Improved window state management
+- Enhanced background service worker for window lifecycle management
 
 ### Version 1.0.0 (Initial Release)
 - Full page HTML inspection

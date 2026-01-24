@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "HTML Element Inspector",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Pop out extension window to inspect, copy, and monitor page HTML and selected elements",
   "permissions": [
     "activeTab",
     "scripting",
-    "clipboardWrite"
+    "clipboardWrite",
+    "tabs"
   ],
   "action": {
     "default_popup": "popup.html",

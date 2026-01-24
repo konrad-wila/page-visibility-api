@@ -2,9 +2,11 @@
 let currentTab = 'fullPage';
 let autoUpdateEnabled = false;
 let currentTabId = null;
+let isPopupWindow = false;
 
 // DOM elements
 const elements = {
+  openWindowBtn: document.getElementById('openWindowBtn'),
   refreshBtn: document.getElementById('refreshBtn'),
   copyBtn: document.getElementById('copyBtn'),
   autoUpdateToggle: document.getElementById('autoUpdateToggle'),
@@ -20,9 +22,43 @@ const elements = {
 
 // Initialize popup
 document.addEventListener('DOMContentLoaded', async () => {
+  // Detect if we're running in a popup window
+  const currentWindow = await chrome.windows.getCurrent();
+  isPopupWindow = currentWindow.type === 'popup';
+  
+  // Hide "Open in Window" button if already in a window
+  if (isPopupWindow) {
+    elements.openWindowBtn.style.display = 'none';
+  }
+  
   // Get current tab
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  currentTabId = tab.id;
+  // If opened as a window, check URL params for tabId
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabIdParam = urlParams.get('tabId');
+  
+  if (tabIdParam) {
+    // Use the tabId from URL parameter
+    currentTabId = parseInt(tabIdParam, 10);
+    
+    // Validate the tab exists and is accessible
+    if (isNaN(currentTabId)) {
+      console.error('Invalid tabId parameter:', tabIdParam);
+      showNotification('Error: Invalid tab ID', 'error');
+      return;
+    }
+    
+    try {
+      await chrome.tabs.get(currentTabId);
+    } catch (err) {
+      console.error('Tab not found:', currentTabId, err);
+      showNotification('Error: Tab not found', 'error');
+      return;
+    }
+  } else {
+    // Get current active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTabId = tab.id;
+  }
 
   // Set up tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -30,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Set up button handlers
+  elements.openWindowBtn.addEventListener('click', openInWindow);
   elements.refreshBtn.addEventListener('click', refreshHTML);
   elements.copyBtn.addEventListener('click', copyToClipboard);
   elements.autoUpdateToggle.addEventListener('change', toggleAutoUpdate);
@@ -40,6 +77,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Listen for messages from content script
   chrome.runtime.onMessage.addListener(handleMessage);
 });
+
+// Open inspector in a separate window
+async function openInWindow() {
+  try {
+    // Send message to background to open window
+    await chrome.runtime.sendMessage({ 
+      action: 'openInWindow',
+      tabId: currentTabId
+    });
+    
+    // Close the popup after opening the window
+    window.close();
+  } catch (error) {
+    console.error('Error opening window:', error);
+    showNotification('Error opening window', 'error');
+  }
+}
 
 // Switch between tabs
 function switchTab(tabName) {
