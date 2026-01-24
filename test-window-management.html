@@ -133,7 +133,13 @@
                 <li>getScreenDetails().screens should return an array with exactly 1 screen</li>
                 <li>The single screen should be marked as primary (isPrimary: true)</li>
             </ul>
-            <p><strong>Note:</strong> The Window Management API requires HTTPS or localhost and user permission in some browsers.</p>
+            <p><strong>Note:</strong> The Window Management API requires:</p>
+            <ul>
+                <li>Chrome 100+ or Edge 100+ (Chromium-based browsers)</li>
+                <li>HTTPS context or localhost for testing</li>
+                <li>User permission may be required on first access</li>
+                <li>The API may not be available in all browsers - this is normal</li>
+            </ul>
         </div>
 
         <h3>📋 Test Results:</h3>
